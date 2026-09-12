@@ -27,11 +27,26 @@ type CheckinRow = {
   shift: Shift | null;
 };
 
+// Um turno é a ida-e-volta inteira (ex.: matutino = busca em casa +
+// chegada na escola + busca na escola ao meio-dia + entrega em casa),
+// por isso cada dia/turno guarda até 4 horários, não só 2.
 type ShiftEntry = {
-  pickupAt: Date | null;
-  dropoffAt: Date | null;
+  pickupIdaAt: Date | null;
+  dropoffIdaAt: Date | null;
+  pickupVoltaAt: Date | null;
+  dropoffVoltaAt: Date | null;
   ausente: boolean;
 };
+
+function emptyEntry(): ShiftEntry {
+  return {
+    pickupIdaAt: null,
+    dropoffIdaAt: null,
+    pickupVoltaAt: null,
+    dropoffVoltaAt: null,
+    ausente: false,
+  };
+}
 
 type Punctuality = "no-horario" | "atrasado" | null;
 
@@ -84,7 +99,14 @@ function ShiftCard({
   expectedPickup: string | null;
   expectedDropoff: string | null;
 }) {
-  function renderRow(rowLabel: string, at: Date | null, expected: string | null) {
+  // Só os dois extremos do turno (primeira busca e entrega final) têm
+  // horário previsto configurado — as etapas do meio (chegada/busca na
+  // escola) aparecem só informativamente, sem selo de pontualidade.
+  function renderRow(
+    rowLabel: string,
+    at: Date | null,
+    expected: string | null,
+  ) {
     const punctuality = punctualityFor(at, expected);
     const minutesLate = at
       ? timeStringToMinutes(formatTimeInBrazil(at)) -
@@ -118,8 +140,10 @@ function ShiftCard({
         </span>
       ) : (
         <>
-          {renderRow("Busca", entry.pickupAt, expectedPickup)}
-          {renderRow("Entrega", entry.dropoffAt, expectedDropoff)}
+          {renderRow("Busca (ida)", entry.pickupIdaAt, expectedPickup)}
+          {renderRow("Chegada na escola", entry.dropoffIdaAt, null)}
+          {renderRow("Busca na escola (volta)", entry.pickupVoltaAt, null)}
+          {renderRow("Entrega em casa", entry.dropoffVoltaAt, expectedDropoff)}
         </>
       )}
     </div>
@@ -182,15 +206,19 @@ export default async function AlunoHistoricoPage({
     const shiftKey: ShiftKey = checkin.shift ?? "sem_turno";
 
     const dayMap = dayByKey.get(dateKey) ?? new Map<ShiftKey, ShiftEntry>();
-    const entry = dayMap.get(shiftKey) ?? {
-      pickupAt: null,
-      dropoffAt: null,
-      ausente: false,
-    };
+    const entry = dayMap.get(shiftKey) ?? emptyEntry();
 
-    if (checkin.event_type === "embarque") entry.pickupAt = occurredAt;
-    else if (checkin.event_type === "entrega") entry.dropoffAt = occurredAt;
-    else entry.ausente = true;
+    // Primeiro embarque/entrega do dia+turno = perna de ida; o segundo
+    // = perna de volta (busca/entrega na escola ao final do turno).
+    if (checkin.event_type === "embarque") {
+      if (!entry.pickupIdaAt) entry.pickupIdaAt = occurredAt;
+      else entry.pickupVoltaAt = occurredAt;
+    } else if (checkin.event_type === "entrega") {
+      if (!entry.dropoffIdaAt) entry.dropoffIdaAt = occurredAt;
+      else entry.dropoffVoltaAt = occurredAt;
+    } else {
+      entry.ausente = true;
+    }
 
     dayMap.set(shiftKey, entry);
     dayByKey.set(dateKey, dayMap);
@@ -257,13 +285,7 @@ export default async function AlunoHistoricoPage({
             label={
               shift === "sem_turno" ? "Turno não informado" : SHIFT_LABEL[shift]
             }
-            entry={
-              todayMap?.get(shift) ?? {
-                pickupAt: null,
-                dropoffAt: null,
-                ausente: false,
-              }
-            }
+            entry={todayMap?.get(shift) ?? emptyEntry()}
             expectedPickup={
               shift === "sem_turno" ? null : (shiftByName.get(shift)?.pickup ?? null)
             }
@@ -311,13 +333,7 @@ export default async function AlunoHistoricoPage({
                       ? "Turno não informado"
                       : SHIFT_LABEL[shift]
                   }
-                  entry={
-                    dayMap?.get(shift) ?? {
-                      pickupAt: null,
-                      dropoffAt: null,
-                      ausente: false,
-                    }
-                  }
+                  entry={dayMap?.get(shift) ?? emptyEntry()}
                   expectedPickup={
                     shift === "sem_turno"
                       ? null

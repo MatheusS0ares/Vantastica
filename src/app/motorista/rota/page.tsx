@@ -5,22 +5,83 @@ import { getUserContext } from "@/lib/supabase/user-context";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 import { SHIFTS, SHIFT_LABEL, currentShift, isShift } from "@/lib/shifts";
-import { StudentCheckinCard } from "@/components/StudentCheckinCard";
+import { StudentCheckinCard, type PrimaryAction } from "@/components/StudentCheckinCard";
 import { recordCheckin } from "./actions";
 
-type Status = "embarcado" | "entregue" | "ausente";
+// Um turno é a ida-e-volta inteira de um grupo de alunos (ex.: matutino
+// = busca em casa + chegada na escola + busca na escola ao meio-dia +
+// entrega em casa), não só um embarque e uma entrega. Cada evento novo
+// avança o aluno pra próxima etapa dentro do mesmo turno/dia.
+type Stage =
+  | "aguardando_ida"
+  | "a_caminho_escola"
+  | "aguardando_volta"
+  | "a_caminho_casa"
+  | "concluido"
+  | "ausente";
 
-const STATUS_LABEL: Record<Status, string> = {
-  embarcado: "Embarcou",
-  entregue: "Entregue",
-  ausente: "Ausente",
+const STAGE_BADGE: Record<
+  Stage,
+  { label: string; className: string } | null
+> = {
+  aguardando_ida: null,
+  a_caminho_escola: {
+    label: "A caminho da escola",
+    className: "bg-amber/10 text-amber",
+  },
+  aguardando_volta: { label: "Na escola", className: "bg-blue/10 text-blue" },
+  a_caminho_casa: {
+    label: "A caminho de casa",
+    className: "bg-amber/10 text-amber",
+  },
+  concluido: { label: "Entregue", className: "bg-sage text-mint" },
+  ausente: { label: "Ausente", className: "bg-coral/10 text-coral" },
 };
 
-const STATUS_CLASS: Record<Status, string> = {
-  embarcado: "bg-amber/10 text-amber",
-  entregue: "bg-sage text-mint",
-  ausente: "bg-coral/10 text-coral",
+const STAGE_PRIMARY: Record<Stage, PrimaryAction | null> = {
+  aguardando_ida: {
+    kind: "embarque",
+    label: "Coletar",
+    confirmTitle: "Confirmar busca",
+    confirmButton: "Confirmar busca",
+  },
+  a_caminho_escola: {
+    kind: "entrega",
+    label: "Confirmar chegada na escola",
+    confirmTitle: "Confirmar chegada na escola",
+    confirmButton: "Confirmar chegada",
+  },
+  aguardando_volta: {
+    kind: "embarque",
+    label: "Buscar na escola",
+    confirmTitle: "Confirmar busca na escola",
+    confirmButton: "Confirmar busca",
+  },
+  a_caminho_casa: {
+    kind: "entrega",
+    label: "Confirmar entrega em casa",
+    confirmTitle: "Confirmar entrega em casa",
+    confirmButton: "Confirmar entrega",
+  },
+  concluido: null,
+  ausente: null,
 };
+
+function stageFor(events: { event_type: string }[]): Stage {
+  if (events.some((e) => e.event_type === "ausente")) return "ausente";
+  switch (events.length) {
+    case 0:
+      return "aguardando_ida";
+    case 1:
+      return "a_caminho_escola";
+    case 2:
+      return "aguardando_volta";
+    case 3:
+      return "a_caminho_casa";
+    default:
+      return "concluido";
+  }
+}
 
 type ShiftStudentRow = {
   student_id: string;
@@ -73,16 +134,17 @@ export default async function RotaPage({
         .order("occurred_at", { ascending: true })
     : { data: [] as { student_id: string; event_type: string; occurred_at: string }[] };
 
-  const statusByStudent = new Map<string, { status: Status; time: string }>();
+  const eventsByStudent = new Map<
+    string,
+    { event_type: string; time: string }[]
+  >();
   for (const checkin of todaysCheckins ?? []) {
-    const time = formatTimeInBrazil(new Date(checkin.occurred_at));
-    const status: Status =
-      checkin.event_type === "embarque"
-        ? "embarcado"
-        : checkin.event_type === "entrega"
-          ? "entregue"
-          : "ausente";
-    statusByStudent.set(checkin.student_id, { status, time });
+    const arr = eventsByStudent.get(checkin.student_id) ?? [];
+    arr.push({
+      event_type: checkin.event_type,
+      time: formatTimeInBrazil(new Date(checkin.occurred_at)),
+    });
+    eventsByStudent.set(checkin.student_id, arr);
   }
 
   const photoUrls = new Map(
@@ -138,7 +200,10 @@ export default async function RotaPage({
 
       <div className="flex flex-col gap-3">
         {students.map((student) => {
-          const info = statusByStudent.get(student.id);
+          const events = eventsByStudent.get(student.id) ?? [];
+          const stage = stageFor(events);
+          const badge = STAGE_BADGE[stage];
+          const lastTime = events[events.length - 1]?.time;
 
           return (
             <StudentCheckinCard
@@ -147,16 +212,18 @@ export default async function RotaPage({
               pickupAddress={student.pickup_address}
               photoUrl={photoUrls.get(student.id) ?? null}
               statusBadge={
-                info ? (
+                badge ? (
                   <span
-                    className={`rounded-pill px-3 py-1 text-xs font-semibold ${STATUS_CLASS[info.status]}`}
+                    className={`rounded-pill px-3 py-1 text-xs font-semibold ${badge.className}`}
                   >
-                    {STATUS_LABEL[info.status]} · {info.time}
+                    {badge.label}
+                    {lastTime ? ` · ${lastTime}` : ""}
                   </span>
                 ) : null
               }
-              showColetarButtons={!info}
-              showEntregarButton={info?.status === "embarcado"}
+              stage={stage}
+              primaryAction={STAGE_PRIMARY[stage]}
+              showAusenteButton={stage === "aguardando_ida"}
               embarcarAction={recordCheckin.bind(
                 null,
                 student.id,

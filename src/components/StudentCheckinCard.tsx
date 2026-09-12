@@ -5,12 +5,11 @@ import { useFormStatus } from "react-dom";
 
 type CheckinAction = (formData: FormData) => void;
 
-type ConfirmKind = "embarque" | "entrega" | "ausente";
-
-const CONFIRM_COPY: Record<ConfirmKind, { title: string; button: string }> = {
-  embarque: { title: "Confirmar embarque", button: "Confirmar embarque" },
-  entrega: { title: "Confirmar entrega", button: "Confirmar entrega" },
-  ausente: { title: "Marcar como ausente", button: "Confirmar ausência" },
+export type PrimaryAction = {
+  kind: "embarque" | "entrega";
+  label: string;
+  confirmTitle: string;
+  confirmButton: string;
 };
 
 function initials(name: string) {
@@ -44,26 +43,33 @@ export function StudentCheckinCard({
   pickupAddress,
   photoUrl,
   statusBadge,
+  stage,
+  primaryAction,
+  showAusenteButton,
   embarcarAction,
   entregarAction,
   ausenteAction,
-  showColetarButtons,
-  showEntregarButton,
 }: {
   studentName: string;
   pickupAddress: string | null;
   photoUrl: string | null;
   statusBadge: React.ReactNode;
+  // Chave opaca que muda a cada etapa do turno (ida → escola → volta →
+  // casa) — só serve pra fechar o modal quando o servidor confirmar o
+  // avanço; o conteúdo em si vem de `stage` na página, não daqui.
+  stage: string;
+  primaryAction: PrimaryAction | null;
+  showAusenteButton: boolean;
   embarcarAction: CheckinAction;
   entregarAction: CheckinAction;
   ausenteAction: CheckinAction;
-  showColetarButtons: boolean;
-  showEntregarButton: boolean;
 }) {
-  const [confirming, setConfirming] = useState<ConfirmKind | null>(null);
+  const [confirming, setConfirming] = useState<"primary" | "ausente" | null>(
+    null,
+  );
 
-  // Fecha o modal só quando o servidor de fato confirmar a mudança
-  // (essas props só mudam depois que a Server Action + revalidatePath
+  // Fecha o modal só quando o servidor de fato confirmar a mudança de
+  // etapa (essa prop só muda depois que a Server Action + revalidatePath
   // trazem o novo status) — nunca no clique em si. Fechar no clique
   // desmontava o <form> na mesma hora que o navegador tentava enviá-lo,
   // então às vezes o check-in nunca chegava a ser registrado.
@@ -74,13 +80,10 @@ export function StudentCheckinCard({
       return;
     }
     setConfirming(null);
-  }, [showColetarButtons, showEntregarButton]);
+  }, [stage]);
 
-  const actionFor: Record<ConfirmKind, CheckinAction> = {
-    embarque: embarcarAction,
-    entrega: entregarAction,
-    ausente: ausenteAction,
-  };
+  const primaryFormAction =
+    primaryAction?.kind === "embarque" ? embarcarAction : entregarAction;
 
   return (
     <>
@@ -95,33 +98,29 @@ export function StudentCheckinCard({
           {statusBadge}
         </div>
 
-        {showColetarButtons && (
+        {(primaryAction || showAusenteButton) && (
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setConfirming("embarque")}
-              className="flex-1 rounded-pill bg-mint px-4 py-3 font-medium text-white transition hover:opacity-90"
-            >
-              Coletar
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirming("ausente")}
-              className="flex-1 rounded-pill border border-coral px-4 py-3 font-medium text-coral transition hover:opacity-90"
-            >
-              Ausente
-            </button>
+            {primaryAction && (
+              <button
+                type="button"
+                onClick={() => setConfirming("primary")}
+                className={`flex-1 rounded-pill px-4 py-3 font-medium text-white transition hover:opacity-90 ${
+                  primaryAction.kind === "embarque" ? "bg-mint" : "bg-navy"
+                }`}
+              >
+                {primaryAction.label}
+              </button>
+            )}
+            {showAusenteButton && (
+              <button
+                type="button"
+                onClick={() => setConfirming("ausente")}
+                className="flex-1 rounded-pill border border-coral px-4 py-3 font-medium text-coral transition hover:opacity-90"
+              >
+                Ausente
+              </button>
+            )}
           </div>
-        )}
-
-        {showEntregarButton && (
-          <button
-            type="button"
-            onClick={() => setConfirming("entrega")}
-            className="w-full rounded-pill bg-navy px-4 py-3 font-medium text-white transition hover:opacity-90"
-          >
-            Confirmar entrega
-          </button>
         )}
       </div>
 
@@ -148,12 +147,25 @@ export function StudentCheckinCard({
                 {studentName}
               </span>
               <span className="text-sm text-muted">
-                {CONFIRM_COPY[confirming].title}
+                {confirming === "ausente"
+                  ? "Marcar como ausente"
+                  : primaryAction?.confirmTitle}
               </span>
             </div>
 
-            <form action={actionFor[confirming]} className="w-full">
-              <ConfirmSubmitButton label={CONFIRM_COPY[confirming].button} />
+            <form
+              action={
+                confirming === "ausente" ? ausenteAction : primaryFormAction
+              }
+              className="w-full"
+            >
+              <ConfirmSubmitButton
+                label={
+                  confirming === "ausente"
+                    ? "Confirmar ausência"
+                    : (primaryAction?.confirmButton ?? "Confirmar")
+                }
+              />
             </form>
             <button
               type="button"

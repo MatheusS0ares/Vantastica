@@ -48,3 +48,26 @@ body {
   background: var(--color-bg);
   color: var(--color-text);
 }
+
+/* Feedback tátil universal: qualquer elemento clicável "aperta"
+   visualmente no toque, antes mesmo da resposta do servidor chegar —
+   sem isso, no celular fica a sensação de que o toque não registrou. */
+a,
+button,
+summary,
+input[type="checkbox"],
+input[type="radio"] {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+a:active,
+button:not(:disabled):active,
+summary:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
+input[type="checkbox"]:active,
+input[type="radio"]:active {
+  transform: scale(1.2);
+}
