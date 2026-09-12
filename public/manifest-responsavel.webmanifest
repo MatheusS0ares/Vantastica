@@ -1,0 +1,15 @@
+{
+  "name": "VemVan Responsável",
+  "short_name": "VemVan",
+  "description": "Acompanhe em tempo real o transporte escolar do seu filho.",
+  "start_url": "/responsavel",
+  "scope": "/responsavel",
+  "display": "standalone",
+  "background_color": "#F7FAFC",
+  "theme_color": "#1A365D",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
