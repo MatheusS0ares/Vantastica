@@ -24,10 +24,9 @@ export async function createStudent(formData: FormData) {
 
   const supabase = await createClient();
 
-  const photoUrl = photoFile
-    ? await uploadStudentPhoto(supabase, context.organizationId, photoFile)
-    : null;
-
+  // O path da foto inclui o student_id (pra RLS restringir por aluno),
+  // então o aluno precisa existir primeiro; a foto é anexada logo em
+  // seguida, sem bloquear o cadastro se o upload falhar.
   const { data, error } = await supabase
     .from("students")
     .insert({
@@ -38,13 +37,24 @@ export async function createStudent(formData: FormData) {
       pickup_address: pickupAddress,
       dropoff_address: dropoffAddress,
       medical_notes: medicalNotes,
-      photo_url: photoUrl,
     })
     .select("id")
     .single();
 
   if (error) {
     redirect(`/motorista/alunos/novo?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (photoFile && photoFile.size > 0) {
+    const photoUrl = await uploadStudentPhoto(
+      supabase,
+      context.organizationId,
+      data.id,
+      photoFile,
+    );
+    if (photoUrl) {
+      await supabase.from("students").update({ photo_url: photoUrl }).eq("id", data.id);
+    }
   }
 
   redirect(`/motorista/alunos/${data.id}`);
@@ -71,6 +81,7 @@ export async function updateStudentPhoto(
   const newPath = await uploadStudentPhoto(
     supabase,
     context.organizationId,
+    studentId,
     photoFile,
   );
 

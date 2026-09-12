@@ -2,6 +2,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
+import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
+import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
+import { updateStudentPhotoAsGuardian } from "./actions";
 
 type StatusInfo = {
   label: string;
@@ -30,15 +33,23 @@ export default async function ResponsavelStatusPage() {
 
   const { data: links } = await supabase
     .from("student_guardians")
-    .select("students(id, full_name)")
+    .select("students(id, full_name, photo_url)")
     .eq("guardian_id", context.guardianId);
 
+  type StudentRow = { id: string; full_name: string; photo_url: string | null };
+
   const students = (links ?? [])
-    .map(
-      (link) =>
-        link.students as unknown as { id: string; full_name: string } | null,
-    )
-    .filter((s): s is { id: string; full_name: string } => Boolean(s));
+    .map((link) => link.students as unknown as StudentRow | null)
+    .filter((s): s is StudentRow => Boolean(s));
+
+  const photoUrls = new Map(
+    await Promise.all(
+      students.map(
+        async (s) =>
+          [s.id, await getStudentPhotoSignedUrl(supabase, s.photo_url)] as const,
+      ),
+    ),
+  );
 
   const todayStart = todayStartInBrazil();
 
@@ -83,9 +94,19 @@ export default async function ResponsavelStatusPage() {
               key={student.id}
               className="flex flex-col gap-3 rounded-card bg-surface p-5 shadow-card"
             >
-              <span className="font-heading font-semibold text-navy">
-                {student.full_name}
-              </span>
+              <div className="flex items-center gap-3">
+                <EditableStudentPhoto
+                  studentName={student.full_name}
+                  photoUrl={photoUrls.get(student.id) ?? null}
+                  updatePhotoAction={updateStudentPhotoAsGuardian.bind(
+                    null,
+                    student.id,
+                  )}
+                />
+                <span className="font-heading font-semibold text-navy">
+                  {student.full_name}
+                </span>
+              </div>
               <div
                 className={`flex flex-col gap-1 rounded-input px-4 py-3 ${info.className}`}
               >
