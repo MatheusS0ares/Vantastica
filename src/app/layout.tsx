@@ -18,6 +18,18 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "VemVan",
   description: "Gestão inteligente de vans escolares",
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "VemVan",
+    statusBarStyle: "default",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "apple-mobile-web-app-capable": "yes",
+  },
 };
 
 export const viewport: Viewport = {
