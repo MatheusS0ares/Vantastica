@@ -1,6 +1,7 @@
 "use client";
 
 import { CameraIcon } from "./icons";
+import { compressFileInput } from "@/lib/compressImage";
 
 function initials(name: string) {
   return name
@@ -43,7 +44,11 @@ export function EditableStudentPhoto({
           name="photo"
           accept="image/*"
           className="hidden"
-          onChange={(event) => event.currentTarget.form?.requestSubmit()}
+          onChange={async (event) => {
+            const input = event.currentTarget;
+            await compressFileInput(input);
+            input.form?.requestSubmit();
+          }}
         />
       </label>
       <span className="pointer-events-none absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-pill bg-navy text-white shadow-card">
