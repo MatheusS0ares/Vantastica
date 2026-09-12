@@ -42,7 +42,6 @@ export function EditableStudentPhoto({
           type="file"
           name="photo"
           accept="image/*"
-          capture="environment"
           className="hidden"
           onChange={(event) => event.currentTarget.form?.requestSubmit()}
         />
