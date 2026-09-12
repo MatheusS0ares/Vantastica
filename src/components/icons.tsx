@@ -111,6 +111,24 @@ export function ClockIcon({ size = 20 }: IconProps) {
   );
 }
 
+export function CameraIcon({ size = 14 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2l1-2h7l1 2h2A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5Z" />
+      <circle cx="12" cy="12.5" r="3.3" />
+    </svg>
+  );
+}
+
 export function CalendarIcon({ size = 20 }: IconProps) {
   return (
     <svg

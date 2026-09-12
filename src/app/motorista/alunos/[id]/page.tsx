@@ -3,8 +3,9 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
+import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
-import { addGuardianToStudent } from "../actions";
+import { addGuardianToStudent, updateStudentPhoto } from "../actions";
 
 type GuardianRow = {
   id: string;
@@ -48,6 +49,7 @@ export default async function AlunoDossiePage({
     .eq("student_id", id);
 
   const addGuardianAction = addGuardianToStudent.bind(null, id);
+  const updatePhotoAction = updateStudentPhoto.bind(null, id);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
@@ -62,25 +64,11 @@ export default async function AlunoDossiePage({
       )}
 
       <div className="flex items-center gap-4">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-pill bg-blue/10">
-          {photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={photoUrl}
-              alt={student.full_name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center font-heading text-lg font-semibold text-blue">
-              {(student.full_name as string)
-                .split(" ")
-                .filter(Boolean)
-                .slice(0, 2)
-                .map((part: string) => part[0]?.toUpperCase())
-                .join("")}
-            </div>
-          )}
-        </div>
+        <EditableStudentPhoto
+          studentName={student.full_name}
+          photoUrl={photoUrl}
+          updatePhotoAction={updatePhotoAction}
+        />
         <div className="flex flex-col gap-1">
           <h1 className="font-heading text-xl font-bold text-navy">
             {student.full_name}

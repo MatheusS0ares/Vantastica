@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
-import { uploadStudentPhoto } from "@/lib/supabase/storage";
+import { uploadStudentPhoto, deleteStudentPhoto } from "@/lib/supabase/storage";
 
 function readField(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
@@ -48,6 +48,54 @@ export async function createStudent(formData: FormData) {
   }
 
   redirect(`/motorista/alunos/${data.id}`);
+}
+
+export async function updateStudentPhoto(
+  studentId: string,
+  formData: FormData,
+) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const photoFile = formData.get("photo") as File | null;
+  if (!photoFile || photoFile.size === 0) return;
+
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("students")
+    .select("photo_url")
+    .eq("id", studentId)
+    .maybeSingle();
+
+  const newPath = await uploadStudentPhoto(
+    supabase,
+    context.organizationId,
+    photoFile,
+  );
+
+  if (!newPath) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent("Não foi possível enviar a foto.")}`,
+    );
+  }
+
+  const { error } = await supabase
+    .from("students")
+    .update({ photo_url: newPath })
+    .eq("id", studentId);
+
+  if (error) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  // Só remove a antiga depois que a nova já está salva — evita ficar
+  // sem nenhuma foto se algo falhar no meio do caminho.
+  await deleteStudentPhoto(supabase, existing?.photo_url ?? null);
+
+  revalidatePath(`/motorista/alunos/${studentId}`);
 }
 
 export async function addGuardianToStudent(

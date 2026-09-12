@@ -31,6 +31,14 @@ export async function uploadStudentPhoto(
   return path;
 }
 
+export async function deleteStudentPhoto(
+  supabase: SupabaseClient,
+  path: string | null,
+): Promise<void> {
+  if (!path) return;
+  await supabase.storage.from(BUCKET).remove([path]);
+}
+
 export async function getStudentPhotoSignedUrl(
   supabase: SupabaseClient,
   path: string | null,
