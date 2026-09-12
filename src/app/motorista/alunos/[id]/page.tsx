@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
+import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { addGuardianToStudent } from "../actions";
 
 type GuardianRow = {
@@ -28,7 +29,7 @@ export default async function AlunoDossiePage({
   const { data: student } = await supabase
     .from("students")
     .select(
-      "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes",
+      "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes, photo_url",
     )
     .eq("id", id)
     .maybeSingle();
@@ -36,6 +37,8 @@ export default async function AlunoDossiePage({
   if (!student) {
     notFound();
   }
+
+  const photoUrl = await getStudentPhotoSignedUrl(supabase, student.photo_url);
 
   const { data: guardianLinks } = await supabase
     .from("student_guardians")
@@ -58,15 +61,36 @@ export default async function AlunoDossiePage({
         </p>
       )}
 
-      <div className="flex flex-col gap-1">
-        <h1 className="font-heading text-xl font-bold text-navy">
-          {student.full_name}
-        </h1>
-        <span className="text-sm text-muted">
-          {[student.school_name, student.class_name]
-            .filter(Boolean)
-            .join(" · ") || "Sem escola/turma cadastrada"}
-        </span>
+      <div className="flex items-center gap-4">
+        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-pill bg-blue/10">
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={student.full_name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-heading text-lg font-semibold text-blue">
+              {(student.full_name as string)
+                .split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part: string) => part[0]?.toUpperCase())
+                .join("")}
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col gap-1">
+          <h1 className="font-heading text-xl font-bold text-navy">
+            {student.full_name}
+          </h1>
+          <span className="text-sm text-muted">
+            {[student.school_name, student.class_name]
+              .filter(Boolean)
+              .join(" · ") || "Sem escola/turma cadastrada"}
+          </span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card">

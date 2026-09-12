@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
+import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 
 type StatusInfo = {
   label: string;
@@ -39,8 +40,7 @@ export default async function ResponsavelStatusPage() {
     )
     .filter((s): s is { id: string; full_name: string } => Boolean(s));
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  const todayStart = todayStartInBrazil();
 
   const studentIds = students.map((s) => s.id);
   const { data: todaysCheckins } = studentIds.length
@@ -54,10 +54,7 @@ export default async function ResponsavelStatusPage() {
 
   const latestByStudent = new Map<string, { event_type: string; time: string }>();
   for (const checkin of todaysCheckins ?? []) {
-    const time = new Date(checkin.occurred_at).toLocaleTimeString("pt-BR", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    const time = formatTimeInBrazil(new Date(checkin.occurred_at));
     latestByStudent.set(checkin.student_id, {
       event_type: checkin.event_type,
       time,

@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { formatTimeInBrazil } from "@/lib/timezone";
 
 type CheckinEvent = "embarque" | "entrega" | "ausente";
 
@@ -37,10 +38,7 @@ export async function notifyGuardiansOfCheckin({
 
   const resend = new Resend(process.env.RESEND_API_KEY);
   const copy = EVENT_COPY[eventType];
-  const time = occurredAt.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const time = formatTimeInBrazil(occurredAt);
 
   try {
     await resend.emails.send({

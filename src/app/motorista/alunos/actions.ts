@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
+import { uploadStudentPhoto } from "@/lib/supabase/storage";
 
 function readField(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
@@ -19,8 +20,14 @@ export async function createStudent(formData: FormData) {
   const pickupAddress = readField(formData, "pickupAddress") || null;
   const dropoffAddress = readField(formData, "dropoffAddress") || null;
   const medicalNotes = readField(formData, "medicalNotes") || null;
+  const photoFile = formData.get("photo") as File | null;
 
   const supabase = await createClient();
+
+  const photoUrl = photoFile
+    ? await uploadStudentPhoto(supabase, context.organizationId, photoFile)
+    : null;
+
   const { data, error } = await supabase
     .from("students")
     .insert({
@@ -31,6 +38,7 @@ export async function createStudent(formData: FormData) {
       pickup_address: pickupAddress,
       dropoff_address: dropoffAddress,
       medical_notes: medicalNotes,
+      photo_url: photoUrl,
     })
     .select("id")
     .single();
