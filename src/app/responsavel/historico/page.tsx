@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { formatTimeInBrazil } from "@/lib/timezone";
+import { SHIFT_LABEL, type Shift } from "@/lib/shifts";
 
 const EVENT_LABEL: Record<string, string> = {
   embarque: "Embarque",
@@ -28,6 +29,7 @@ type CheckinRow = {
   event_type: string;
   occurred_at: string;
   student_id: string;
+  shift: Shift | null;
 };
 
 export default async function HistoricoPage() {
@@ -60,7 +62,7 @@ export default async function HistoricoPage() {
     studentIds.length
       ? supabase
           .from("checkins")
-          .select("id, event_type, occurred_at, student_id")
+          .select("id, event_type, occurred_at, student_id, shift")
           .in("student_id", studentIds)
           .order("occurred_at", { ascending: false })
           .limit(20)
@@ -136,6 +138,7 @@ export default async function HistoricoPage() {
                 <span className="text-xs text-muted">
                   {new Date(checkin.occurred_at).toLocaleDateString("pt-BR")}{" "}
                   · {formatTimeInBrazil(new Date(checkin.occurred_at))}
+                  {checkin.shift ? ` · ${SHIFT_LABEL[checkin.shift]}` : ""}
                 </span>
               </div>
               <span

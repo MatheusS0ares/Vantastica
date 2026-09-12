@@ -5,11 +5,13 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { notifyGuardiansOfCheckin } from "@/lib/notifications";
+import type { Shift } from "@/lib/shifts";
 
 type CheckinEvent = "embarque" | "entrega" | "ausente";
 
 export async function recordCheckin(
   studentId: string,
+  shift: Shift,
   eventType: CheckinEvent,
 ) {
   const context = await getUserContext();
@@ -27,13 +29,16 @@ export async function recordCheckin(
 
   const { error } = await supabase.from("checkins").insert({
     student_id: studentId,
+    shift,
     event_type: eventType,
     recorded_by: context.userId,
     occurred_at: occurredAt.toISOString(),
   });
 
   if (error) {
-    redirect(`/motorista/rota?error=${encodeURIComponent(error.message)}`);
+    redirect(
+      `/motorista/rota?turno=${shift}&error=${encodeURIComponent(error.message)}`,
+    );
   }
 
   if (student) {

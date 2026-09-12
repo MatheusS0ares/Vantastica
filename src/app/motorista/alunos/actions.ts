@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { uploadStudentPhoto, deleteStudentPhoto } from "@/lib/supabase/storage";
+import { SHIFTS } from "@/lib/shifts";
 
 function readField(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
@@ -20,9 +21,6 @@ export async function createStudent(formData: FormData) {
   const pickupAddress = readField(formData, "pickupAddress") || null;
   const dropoffAddress = readField(formData, "dropoffAddress") || null;
   const medicalNotes = readField(formData, "medicalNotes") || null;
-  const expectedPickupTime = readField(formData, "expectedPickupTime") || null;
-  const expectedDropoffTime =
-    readField(formData, "expectedDropoffTime") || null;
   const photoFile = formData.get("photo") as File | null;
 
   const supabase = await createClient();
@@ -40,8 +38,6 @@ export async function createStudent(formData: FormData) {
       pickup_address: pickupAddress,
       dropoff_address: dropoffAddress,
       medical_notes: medicalNotes,
-      expected_pickup_time: expectedPickupTime,
-      expected_dropoff_time: expectedDropoffTime,
     })
     .select("id")
     .single();
@@ -114,34 +110,52 @@ export async function updateStudentPhoto(
   revalidatePath(`/motorista/alunos/${studentId}`);
 }
 
-export async function updateStudentSchedule(
+export async function updateStudentShifts(
   studentId: string,
   formData: FormData,
 ) {
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
 
-  const expectedPickupTime = readField(formData, "expectedPickupTime") || null;
-  const expectedDropoffTime =
-    readField(formData, "expectedDropoffTime") || null;
-
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("students")
-    .update({
-      expected_pickup_time: expectedPickupTime,
-      expected_dropoff_time: expectedDropoffTime,
-    })
-    .eq("id", studentId);
 
-  if (error) {
-    redirect(
-      `/motorista/alunos/${studentId}?error=${encodeURIComponent(error.message)}`,
+  for (const shift of SHIFTS) {
+    const expectedPickupTime =
+      readField(formData, `${shift}_pickup`) || null;
+    const expectedDropoffTime =
+      readField(formData, `${shift}_dropoff`) || null;
+
+    if (!expectedPickupTime && !expectedDropoffTime) {
+      // Nenhum horário informado pra esse turno: o aluno não anda nele,
+      // então removemos o registro em vez de guardar uma linha vazia.
+      await supabase
+        .from("student_shifts")
+        .delete()
+        .eq("student_id", studentId)
+        .eq("shift", shift);
+      continue;
+    }
+
+    const { error } = await supabase.from("student_shifts").upsert(
+      {
+        student_id: studentId,
+        shift,
+        expected_pickup_time: expectedPickupTime,
+        expected_dropoff_time: expectedDropoffTime,
+      },
+      { onConflict: "student_id,shift" },
     );
+
+    if (error) {
+      redirect(
+        `/motorista/alunos/${studentId}?error=${encodeURIComponent(error.message)}`,
+      );
+    }
   }
 
   revalidatePath(`/motorista/alunos/${studentId}`);
   revalidatePath(`/motorista/alunos/${studentId}/historico`);
+  revalidatePath("/motorista/rota");
 }
 
 export async function createIncident(studentId: string, formData: FormData) {

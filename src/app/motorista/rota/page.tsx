@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
+import { SHIFTS, SHIFT_LABEL, currentShift, isShift } from "@/lib/shifts";
 import { StudentCheckinCard } from "@/components/StudentCheckinCard";
 import { recordCheckin } from "./actions";
 
@@ -21,23 +22,44 @@ const STATUS_CLASS: Record<Status, string> = {
   ausente: "bg-coral/10 text-coral",
 };
 
+type ShiftStudentRow = {
+  student_id: string;
+  students: {
+    id: string;
+    full_name: string;
+    pickup_address: string | null;
+    photo_url: string | null;
+    is_active: boolean;
+  } | null;
+};
+
 export default async function RotaPage({
   searchParams,
 }: PageProps<"/motorista/rota">) {
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
 
-  const { error } = await searchParams;
+  const { error, turno } = await searchParams;
+  const selectedShift =
+    typeof turno === "string" && isShift(turno) ? turno : currentShift();
+
   const supabase = await createClient();
 
-  const { data: students } = await supabase
-    .from("students")
-    .select("id, full_name, pickup_address, photo_url")
-    .eq("organization_id", context.organizationId)
-    .eq("is_active", true)
-    .order("full_name");
+  const { data: shiftRowsRaw } = await supabase
+    .from("student_shifts")
+    .select(
+      "student_id, students(id, full_name, pickup_address, photo_url, is_active)",
+    )
+    .eq("shift", selectedShift);
 
-  const studentIds = students?.map((s) => s.id) ?? [];
+  const students = (shiftRowsRaw ?? [])
+    .map((row) => row.students as unknown as ShiftStudentRow["students"])
+    .filter((s): s is NonNullable<ShiftStudentRow["students"]> =>
+      Boolean(s && s.is_active),
+    )
+    .sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+  const studentIds = students.map((s) => s.id);
 
   const todayStart = todayStartInBrazil();
 
@@ -46,6 +68,7 @@ export default async function RotaPage({
         .from("checkins")
         .select("student_id, event_type, occurred_at")
         .in("student_id", studentIds)
+        .eq("shift", selectedShift)
         .gte("occurred_at", todayStart.toISOString())
         .order("occurred_at", { ascending: true })
     : { data: [] as { student_id: string; event_type: string; occurred_at: string }[] };
@@ -64,7 +87,7 @@ export default async function RotaPage({
 
   const photoUrls = new Map(
     await Promise.all(
-      (students ?? []).map(
+      students.map(
         async (s) =>
           [s.id, await getStudentPhotoSignedUrl(supabase, s.photo_url)] as const,
       ),
@@ -82,23 +105,39 @@ export default async function RotaPage({
         </Link>
       </div>
 
+      <div className="flex gap-2">
+        {SHIFTS.map((shift) => (
+          <Link
+            key={shift}
+            href={`/motorista/rota?turno=${shift}`}
+            className={`flex-1 rounded-pill px-3 py-2 text-center text-sm font-medium transition ${
+              shift === selectedShift
+                ? "bg-navy text-white"
+                : "bg-surface text-muted shadow-card"
+            }`}
+          >
+            {SHIFT_LABEL[shift]}
+          </Link>
+        ))}
+      </div>
+
       {error && (
         <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
           {error}
         </p>
       )}
 
-      {students && students.length === 0 && (
+      {students.length === 0 && (
         <p className="mt-6 text-center text-sm text-muted">
-          Nenhum aluno cadastrado ainda.{" "}
-          <Link href="/motorista/alunos/novo" className="text-blue">
-            Cadastrar aluno
+          Nenhum aluno configurado para o turno {SHIFT_LABEL[selectedShift]}.{" "}
+          <Link href="/motorista/alunos" className="text-blue">
+            Configurar turnos
           </Link>
         </p>
       )}
 
       <div className="flex flex-col gap-3">
-        {students?.map((student) => {
+        {students.map((student) => {
           const info = statusByStudent.get(student.id);
 
           return (
@@ -118,9 +157,24 @@ export default async function RotaPage({
               }
               showColetarButtons={!info}
               showEntregarButton={info?.status === "embarcado"}
-              embarcarAction={recordCheckin.bind(null, student.id, "embarque")}
-              entregarAction={recordCheckin.bind(null, student.id, "entrega")}
-              ausenteAction={recordCheckin.bind(null, student.id, "ausente")}
+              embarcarAction={recordCheckin.bind(
+                null,
+                student.id,
+                selectedShift,
+                "embarque",
+              )}
+              entregarAction={recordCheckin.bind(
+                null,
+                student.id,
+                selectedShift,
+                "entrega",
+              )}
+              ausenteAction={recordCheckin.bind(
+                null,
+                student.id,
+                selectedShift,
+                "ausente",
+              )}
             />
           );
         })}

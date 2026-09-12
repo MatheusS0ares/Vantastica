@@ -8,30 +8,38 @@ import {
   formatTimeInBrazil,
   timeStringToMinutes,
 } from "@/lib/timezone";
+import { SHIFTS, SHIFT_LABEL, type Shift } from "@/lib/shifts";
 
 const LATE_TOLERANCE_MINUTES = 5;
 const HISTORY_DAYS = 30;
 
+type ShiftKey = Shift | "sem_turno";
+
+type StudentShiftRow = {
+  shift: Shift;
+  expected_pickup_time: string | null;
+  expected_dropoff_time: string | null;
+};
+
 type CheckinRow = {
   event_type: "embarque" | "entrega" | "ausente";
   occurred_at: string;
+  shift: Shift | null;
 };
 
-type DayEntry = {
-  dateKey: string;
+type ShiftEntry = {
   pickupAt: Date | null;
   dropoffAt: Date | null;
   ausente: boolean;
 };
 
-type Punctuality = "no-horario" | "atrasado" | "sem-previsao" | null;
+type Punctuality = "no-horario" | "atrasado" | null;
 
 function punctualityFor(
   actualAt: Date | null,
   expectedTime: string | null,
 ): Punctuality {
-  if (!actualAt) return null;
-  if (!expectedTime) return "sem-previsao";
+  if (!actualAt || !expectedTime) return null;
 
   const actualMinutes = timeStringToMinutes(formatTimeInBrazil(actualAt));
   const expectedMinutes = timeStringToMinutes(expectedTime);
@@ -65,75 +73,18 @@ function PunctualityBadge({
   return null;
 }
 
-export default async function AlunoHistoricoPage({
-  params,
-}: PageProps<"/motorista/alunos/[id]/historico">) {
-  const context = await getUserContext();
-  if (context.role !== "motorista") redirect("/login");
-
-  const { id } = await params;
-  const supabase = await createClient();
-
-  const { data: student } = await supabase
-    .from("students")
-    .select(
-      "id, full_name, photo_url, expected_pickup_time, expected_dropoff_time",
-    )
-    .eq("id", id)
-    .maybeSingle();
-
-  if (!student) {
-    notFound();
-  }
-
-  const photoUrl = await getStudentPhotoSignedUrl(supabase, student.photo_url);
-  const expectedPickup = student.expected_pickup_time?.slice(0, 5) ?? null;
-  const expectedDropoff = student.expected_dropoff_time?.slice(0, 5) ?? null;
-
-  const fromDate = new Date();
-  fromDate.setDate(fromDate.getDate() - HISTORY_DAYS);
-
-  const { data: checkinsRaw } = await supabase
-    .from("checkins")
-    .select("event_type, occurred_at")
-    .eq("student_id", id)
-    .gte("occurred_at", fromDate.toISOString())
-    .order("occurred_at", { ascending: true });
-
-  const checkins = (checkinsRaw ?? []) as CheckinRow[];
-
-  const dayByKey = new Map<string, DayEntry>();
-  for (const checkin of checkins) {
-    const occurredAt = new Date(checkin.occurred_at);
-    const dateKey = dateKeyInBrazil(occurredAt);
-
-    const entry = dayByKey.get(dateKey) ?? {
-      dateKey,
-      pickupAt: null,
-      dropoffAt: null,
-      ausente: false,
-    };
-
-    if (checkin.event_type === "embarque") entry.pickupAt = occurredAt;
-    else if (checkin.event_type === "entrega") entry.dropoffAt = occurredAt;
-    else entry.ausente = true;
-
-    dayByKey.set(dateKey, entry);
-  }
-
-  const todayKey = dateKeyInBrazil(new Date());
-  const today = dayByKey.get(todayKey) ?? {
-    dateKey: todayKey,
-    pickupAt: null,
-    dropoffAt: null,
-    ausente: false,
-  };
-
-  const days = Array.from(dayByKey.values())
-    .filter((day) => day.dateKey !== todayKey)
-    .sort((a, b) => (a.dateKey < b.dateKey ? 1 : -1));
-
-  function renderRow(label: string, at: Date | null, expected: string | null) {
+function ShiftCard({
+  label,
+  entry,
+  expectedPickup,
+  expectedDropoff,
+}: {
+  label: string;
+  entry: ShiftEntry;
+  expectedPickup: string | null;
+  expectedDropoff: string | null;
+}) {
+  function renderRow(rowLabel: string, at: Date | null, expected: string | null) {
     const punctuality = punctualityFor(at, expected);
     const minutesLate = at
       ? timeStringToMinutes(formatTimeInBrazil(at)) -
@@ -142,7 +93,7 @@ export default async function AlunoHistoricoPage({
 
     return (
       <div className="flex items-center justify-between">
-        <span className="text-sm text-muted">{label}</span>
+        <span className="text-sm text-muted">{rowLabel}</span>
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-navy">
             {at ? formatTimeInBrazil(at) : "—"}
@@ -157,11 +108,118 @@ export default async function AlunoHistoricoPage({
   }
 
   return (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+        {label}
+      </span>
+      {entry.ausente ? (
+        <span className="w-fit rounded-pill bg-coral/10 px-3 py-1 text-xs font-semibold text-coral">
+          Ausente
+        </span>
+      ) : (
+        <>
+          {renderRow("Busca", entry.pickupAt, expectedPickup)}
+          {renderRow("Entrega", entry.dropoffAt, expectedDropoff)}
+        </>
+      )}
+    </div>
+  );
+}
+
+export default async function AlunoHistoricoPage({
+  params,
+}: PageProps<"/motorista/alunos/[id]/historico">) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const { id } = await params;
+  const supabase = await createClient();
+
+  const { data: student } = await supabase
+    .from("students")
+    .select("id, full_name, photo_url")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!student) {
+    notFound();
+  }
+
+  const photoUrl = await getStudentPhotoSignedUrl(supabase, student.photo_url);
+
+  const { data: shiftsRaw } = await supabase
+    .from("student_shifts")
+    .select("shift, expected_pickup_time, expected_dropoff_time")
+    .eq("student_id", id);
+
+  const shiftByName = new Map(
+    ((shiftsRaw ?? []) as StudentShiftRow[]).map((s) => [
+      s.shift,
+      {
+        pickup: s.expected_pickup_time?.slice(0, 5) ?? null,
+        dropoff: s.expected_dropoff_time?.slice(0, 5) ?? null,
+      },
+    ]),
+  );
+  const enrolledShifts = SHIFTS.filter((shift) => shiftByName.has(shift));
+
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - HISTORY_DAYS);
+
+  const { data: checkinsRaw } = await supabase
+    .from("checkins")
+    .select("event_type, occurred_at, shift")
+    .eq("student_id", id)
+    .gte("occurred_at", fromDate.toISOString())
+    .order("occurred_at", { ascending: true });
+
+  const checkins = (checkinsRaw ?? []) as CheckinRow[];
+
+  const dayByKey = new Map<string, Map<ShiftKey, ShiftEntry>>();
+  for (const checkin of checkins) {
+    const occurredAt = new Date(checkin.occurred_at);
+    const dateKey = dateKeyInBrazil(occurredAt);
+    const shiftKey: ShiftKey = checkin.shift ?? "sem_turno";
+
+    const dayMap = dayByKey.get(dateKey) ?? new Map<ShiftKey, ShiftEntry>();
+    const entry = dayMap.get(shiftKey) ?? {
+      pickupAt: null,
+      dropoffAt: null,
+      ausente: false,
+    };
+
+    if (checkin.event_type === "embarque") entry.pickupAt = occurredAt;
+    else if (checkin.event_type === "entrega") entry.dropoffAt = occurredAt;
+    else entry.ausente = true;
+
+    dayMap.set(shiftKey, entry);
+    dayByKey.set(dateKey, dayMap);
+  }
+
+  // "Hoje" sempre mostra todos os turnos em que o aluno está matriculado
+  // (mesmo sem nenhum check-in ainda, pra deixar claro o que falta
+  // registrar); dias passados só mostram turnos que de fato tiveram
+  // check-in, senão todo dia ganharia linhas "—/—" pros turnos parados.
+  function shiftsWithData(dayMap: Map<ShiftKey, ShiftEntry> | undefined) {
+    const shifts: ShiftKey[] = enrolledShifts.filter((shift) =>
+      dayMap?.has(shift),
+    );
+    if (dayMap?.has("sem_turno")) shifts.push("sem_turno");
+    return shifts;
+  }
+
+  const todayKey = dateKeyInBrazil(new Date());
+  const todayMap = dayByKey.get(todayKey);
+  const todayShifts: ShiftKey[] = [...enrolledShifts];
+  if (todayMap?.has("sem_turno")) todayShifts.push("sem_turno");
+
+  const pastDays = Array.from(dayByKey.keys())
+    .filter((dateKey) => dateKey !== todayKey)
+    .sort((a, b) => (a < b ? 1 : -1));
+
+  return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
-      <Link
-        href={`/motorista/alunos/${id}`}
-        className="text-sm text-muted"
-      >
+      <Link href={`/motorista/alunos/${id}`} className="text-sm text-muted">
         ← {student.full_name}
       </Link>
 
@@ -179,27 +237,41 @@ export default async function AlunoHistoricoPage({
         </h1>
       </div>
 
-      {!expectedPickup && !expectedDropoff && (
+      {enrolledShifts.length === 0 && (
         <p className="rounded-input bg-amber/10 px-3 py-2 text-sm text-amber">
-          Nenhum horário previsto cadastrado ainda — defina no dossiê do
-          aluno pra ver se ele está sendo pego/entregue no horário.
+          Nenhum turno configurado ainda — defina no dossiê do aluno pra ver
+          se ele está sendo pego/entregue no horário.
         </p>
       )}
 
-      <div className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-card">
+      <div className="flex flex-col gap-4 rounded-card bg-surface p-4 shadow-card">
         <span className="font-heading text-sm font-semibold text-navy">
           Hoje
         </span>
-        {today.ausente ? (
-          <span className="rounded-pill bg-coral/10 px-3 py-1 text-xs font-semibold text-coral">
-            Ausente
-          </span>
-        ) : (
-          <>
-            {renderRow("Busca", today.pickupAt, expectedPickup)}
-            {renderRow("Entrega", today.dropoffAt, expectedDropoff)}
-          </>
+        {todayShifts.length === 0 && (
+          <p className="text-sm text-muted">Nenhum registro hoje.</p>
         )}
+        {todayShifts.map((shift) => (
+          <ShiftCard
+            key={shift}
+            label={
+              shift === "sem_turno" ? "Turno não informado" : SHIFT_LABEL[shift]
+            }
+            entry={
+              todayMap?.get(shift) ?? {
+                pickupAt: null,
+                dropoffAt: null,
+                ausente: false,
+              }
+            }
+            expectedPickup={
+              shift === "sem_turno" ? null : (shiftByName.get(shift)?.pickup ?? null)
+            }
+            expectedDropoff={
+              shift === "sem_turno" ? null : (shiftByName.get(shift)?.dropoff ?? null)
+            }
+          />
+        ))}
       </div>
 
       <div className="flex flex-col gap-3">
@@ -207,35 +279,60 @@ export default async function AlunoHistoricoPage({
           Últimos {HISTORY_DAYS} dias
         </span>
 
-        {days.length === 0 && (
+        {pastDays.length === 0 && (
           <p className="text-sm text-muted">
             Nenhum registro nos últimos {HISTORY_DAYS} dias.
           </p>
         )}
 
-        {days.map((day) => (
-          <div
-            key={day.dateKey}
-            className="flex flex-col gap-2 rounded-card bg-surface p-3 shadow-card"
-          >
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-              {new Date(day.dateKey + "T00:00:00").toLocaleDateString(
-                "pt-BR",
-                { weekday: "short", day: "2-digit", month: "2-digit" },
-              )}
-            </span>
-            {day.ausente ? (
-              <span className="w-fit rounded-pill bg-coral/10 px-3 py-1 text-xs font-semibold text-coral">
-                Ausente
+        {pastDays.map((dateKey) => {
+          const dayMap = dayByKey.get(dateKey);
+          const dayShifts = shiftsWithData(dayMap);
+
+          if (dayShifts.length === 0) return null;
+
+          return (
+            <div
+              key={dateKey}
+              className="flex flex-col gap-3 rounded-card bg-surface p-3 shadow-card"
+            >
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+                {new Date(dateKey + "T00:00:00").toLocaleDateString("pt-BR", {
+                  weekday: "short",
+                  day: "2-digit",
+                  month: "2-digit",
+                })}
               </span>
-            ) : (
-              <>
-                {renderRow("Busca", day.pickupAt, expectedPickup)}
-                {renderRow("Entrega", day.dropoffAt, expectedDropoff)}
-              </>
-            )}
-          </div>
-        ))}
+              {dayShifts.map((shift) => (
+                <ShiftCard
+                  key={shift}
+                  label={
+                    shift === "sem_turno"
+                      ? "Turno não informado"
+                      : SHIFT_LABEL[shift]
+                  }
+                  entry={
+                    dayMap?.get(shift) ?? {
+                      pickupAt: null,
+                      dropoffAt: null,
+                      ausente: false,
+                    }
+                  }
+                  expectedPickup={
+                    shift === "sem_turno"
+                      ? null
+                      : (shiftByName.get(shift)?.pickup ?? null)
+                  }
+                  expectedDropoff={
+                    shift === "sem_turno"
+                      ? null
+                      : (shiftByName.get(shift)?.dropoff ?? null)
+                  }
+                />
+              ))}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

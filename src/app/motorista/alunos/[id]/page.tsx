@@ -9,8 +9,9 @@ import {
   addGuardianToStudent,
   createIncident,
   updateStudentPhoto,
-  updateStudentSchedule,
+  updateStudentShifts,
 } from "../actions";
+import { SHIFTS, SHIFT_LABEL } from "@/lib/shifts";
 
 type GuardianRow = {
   id: string;
@@ -18,6 +19,12 @@ type GuardianRow = {
   phone: string | null;
   user_id: string | null;
   invite_token: string;
+};
+
+type StudentShiftRow = {
+  shift: string;
+  expected_pickup_time: string | null;
+  expected_dropoff_time: string | null;
 };
 
 export default async function AlunoDossiePage({
@@ -35,7 +42,7 @@ export default async function AlunoDossiePage({
   const { data: student } = await supabase
     .from("students")
     .select(
-      "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes, photo_url, expected_pickup_time, expected_dropoff_time",
+      "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes, photo_url",
     )
     .eq("id", id)
     .maybeSingle();
@@ -45,6 +52,15 @@ export default async function AlunoDossiePage({
   }
 
   const photoUrl = await getStudentPhotoSignedUrl(supabase, student.photo_url);
+
+  const { data: shiftsRaw } = await supabase
+    .from("student_shifts")
+    .select("shift, expected_pickup_time, expected_dropoff_time")
+    .eq("student_id", id);
+
+  const shiftByName = new Map(
+    ((shiftsRaw ?? []) as StudentShiftRow[]).map((s) => [s.shift, s]),
+  );
 
   const { data: guardianLinks } = await supabase
     .from("student_guardians")
@@ -63,7 +79,7 @@ export default async function AlunoDossiePage({
   const addGuardianAction = addGuardianToStudent.bind(null, id);
   const updatePhotoAction = updateStudentPhoto.bind(null, id);
   const createIncidentAction = createIncident.bind(null, id);
-  const updateScheduleAction = updateStudentSchedule.bind(null, id);
+  const updateShiftsAction = updateStudentShifts.bind(null, id);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
@@ -112,10 +128,10 @@ export default async function AlunoDossiePage({
         )}
       </div>
 
-      <div className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card">
+      <div className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-card">
         <div className="flex items-center justify-between">
           <span className="font-heading text-sm font-semibold text-navy">
-            Horários previstos
+            Turnos
           </span>
           <Link
             href={`/motorista/alunos/${id}/historico`}
@@ -124,45 +140,79 @@ export default async function AlunoDossiePage({
             Ver relatório →
           </Link>
         </div>
-        <span className="text-sm text-text">
-          Busca: {student.expected_pickup_time?.slice(0, 5) || "não definido"}
-        </span>
-        <span className="text-sm text-text">
-          Entrega: {student.expected_dropoff_time?.slice(0, 5) || "não definido"}
-        </span>
+
+        {SHIFTS.filter((shift) => shiftByName.has(shift)).length === 0 && (
+          <p className="text-sm text-muted">
+            Nenhum turno configurado ainda.
+          </p>
+        )}
+
+        {SHIFTS.filter((shift) => shiftByName.has(shift)).map((shift) => {
+          const info = shiftByName.get(shift);
+          return (
+            <div key={shift} className="flex items-center justify-between">
+              <span className="text-sm font-medium text-navy">
+                {SHIFT_LABEL[shift]}
+              </span>
+              <span className="text-sm text-text">
+                Busca {info?.expected_pickup_time?.slice(0, 5) || "—"} ·
+                Entrega {info?.expected_dropoff_time?.slice(0, 5) || "—"}
+              </span>
+            </div>
+          );
+        })}
+
         <details className="mt-1">
           <summary className="cursor-pointer text-sm text-blue">
-            Editar horários
+            Editar turnos
           </summary>
           <form
-            action={updateScheduleAction}
+            action={updateShiftsAction}
             className="mt-3 flex flex-col gap-4"
           >
-            <div className="flex gap-3">
-              <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
-                Busca
-                <input
-                  type="time"
-                  name="expectedPickupTime"
-                  defaultValue={student.expected_pickup_time?.slice(0, 5) ?? ""}
-                  className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-                />
-              </label>
-              <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
-                Entrega
-                <input
-                  type="time"
-                  name="expectedDropoffTime"
-                  defaultValue={student.expected_dropoff_time?.slice(0, 5) ?? ""}
-                  className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-                />
-              </label>
-            </div>
+            <p className="text-xs text-muted">
+              Deixe os dois horários em branco pra um turno que o aluno não
+              usa.
+            </p>
+            {SHIFTS.map((shift) => {
+              const info = shiftByName.get(shift);
+              return (
+                <div key={shift} className="flex flex-col gap-2">
+                  <span className="text-sm font-medium text-navy">
+                    {SHIFT_LABEL[shift]}
+                  </span>
+                  <div className="flex gap-3">
+                    <label className="flex flex-1 flex-col gap-1 text-sm text-text">
+                      Busca
+                      <input
+                        type="time"
+                        name={`${shift}_pickup`}
+                        defaultValue={
+                          info?.expected_pickup_time?.slice(0, 5) ?? ""
+                        }
+                        className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+                      />
+                    </label>
+                    <label className="flex flex-1 flex-col gap-1 text-sm text-text">
+                      Entrega
+                      <input
+                        type="time"
+                        name={`${shift}_dropoff`}
+                        defaultValue={
+                          info?.expected_dropoff_time?.slice(0, 5) ?? ""
+                        }
+                        className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+                      />
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
             <button
               type="submit"
               className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
             >
-              Salvar horários
+              Salvar turnos
             </button>
           </form>
         </details>

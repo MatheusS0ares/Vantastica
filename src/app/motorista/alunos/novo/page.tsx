@@ -70,24 +70,6 @@ export default async function NovoAlunoPage({
             className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
           />
         </label>
-        <div className="flex gap-3">
-          <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
-            Horário previsto de busca
-            <input
-              type="time"
-              name="expectedPickupTime"
-              className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-          <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
-            Horário previsto de entrega
-            <input
-              type="time"
-              name="expectedDropoffTime"
-              className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-        </div>
         <label className="flex flex-col gap-1 text-sm font-medium text-text">
           Restrições médicas / observações
           <textarea
@@ -102,6 +84,10 @@ export default async function NovoAlunoPage({
         >
           Salvar aluno
         </button>
+        <p className="text-center text-xs text-muted">
+          Depois de salvar, configure os turnos do aluno (matutino,
+          vespertino, noturno) no dossiê dele.
+        </p>
       </form>
     </div>
   );
