@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { SignOutButton } from "@/components/SignOutButton";
+import { ResponsavelNav } from "@/components/ResponsavelNav";
 
 export const metadata: Metadata = {
   title: "VemVan Responsável",
@@ -32,11 +33,12 @@ export default async function ResponsavelLayout({
   }
 
   return (
-    <div className="flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col pb-24">
       <div className="flex justify-end px-4 py-2">
         <SignOutButton />
       </div>
       {children}
+      <ResponsavelNav />
     </div>
   );
 }
