@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type UserContext =
@@ -8,8 +9,14 @@ export type UserContext =
 /**
  * Determina se o usuário logado é dono/motorista (membro de uma
  * organização) ou responsável (guardian já vinculado a um aluno).
+ *
+ * auth.getUser() sempre revalida com o servidor do Supabase (ao
+ * contrário de getSession()), então é uma chamada de rede de verdade —
+ * cache() garante que o layout e a page da mesma navegação, que ambos
+ * chamam getUserContext(), reaproveitem uma única chamada em vez de
+ * duplicar o round-trip.
  */
-export async function getUserContext(): Promise<UserContext> {
+export const getUserContext = cache(async (): Promise<UserContext> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -66,4 +73,4 @@ export async function getUserContext(): Promise<UserContext> {
   }
 
   return { role: null, userId: user.id };
-}
+});
