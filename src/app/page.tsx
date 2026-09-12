@@ -1,12 +1,18 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 px-6 text-center">
       <div className="flex flex-col items-center gap-2">
-        <span className="font-heading text-sm font-semibold uppercase tracking-wide text-blue">
-          VemVan
-        </span>
+        <Image
+          src="/logo.png"
+          alt="VemVan"
+          width={120}
+          height={120}
+          priority
+          className="mb-2"
+        />
         <h1 className="font-heading text-3xl font-bold text-navy">
           Vem com a gente.
         </h1>
