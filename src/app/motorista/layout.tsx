@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getUserContext } from "@/lib/supabase/user-context";
+import { SignOutButton } from "@/components/SignOutButton";
 
 export const metadata: Metadata = {
   title: "VemVan Motorista",
@@ -17,10 +20,23 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MotoristaLayout({
+export default async function MotoristaLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <div className="flex flex-1 flex-col">{children}</div>;
+  const context = await getUserContext();
+
+  if (context.role !== "motorista") {
+    redirect("/login");
+  }
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <div className="flex justify-end px-4 py-2">
+        <SignOutButton />
+      </div>
+      {children}
+    </div>
+  );
 }
