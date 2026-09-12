@@ -109,6 +109,31 @@ export async function updateStudentPhoto(
   revalidatePath(`/motorista/alunos/${studentId}`);
 }
 
+export async function createIncident(studentId: string, formData: FormData) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const title = readField(formData, "title");
+  const description = readField(formData, "description") || null;
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("incidents").insert({
+    organization_id: context.organizationId,
+    student_id: studentId,
+    title,
+    description,
+    created_by: context.userId,
+  });
+
+  if (error) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  revalidatePath(`/motorista/alunos/${studentId}`);
+}
+
 export async function addGuardianToStudent(
   studentId: string,
   formData: FormData,

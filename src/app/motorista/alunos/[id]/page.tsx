@@ -5,7 +5,11 @@ import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
-import { addGuardianToStudent, updateStudentPhoto } from "../actions";
+import {
+  addGuardianToStudent,
+  createIncident,
+  updateStudentPhoto,
+} from "../actions";
 
 type GuardianRow = {
   id: string;
@@ -48,8 +52,16 @@ export default async function AlunoDossiePage({
     )
     .eq("student_id", id);
 
+  const { data: incidents } = await supabase
+    .from("incidents")
+    .select("id, title, description, created_at")
+    .eq("student_id", id)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
   const addGuardianAction = addGuardianToStudent.bind(null, id);
   const updatePhotoAction = updateStudentPhoto.bind(null, id);
+  const createIncidentAction = createIncident.bind(null, id);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
@@ -147,6 +159,72 @@ export default async function AlunoDossiePage({
           );
         })}
       </div>
+
+      <div className="flex flex-col gap-3">
+        <span className="font-heading text-sm font-semibold text-navy">
+          Ocorrências
+        </span>
+
+        {(!incidents || incidents.length === 0) && (
+          <p className="text-sm text-muted">
+            Nenhuma ocorrência registrada.
+          </p>
+        )}
+
+        {incidents?.map((incident) => (
+          <div
+            key={incident.id}
+            className="flex flex-col gap-1 rounded-card bg-amber/10 p-4"
+          >
+            <div className="flex items-center justify-between">
+              <span className="font-medium text-navy">{incident.title}</span>
+              <span className="text-xs text-muted">
+                {new Date(incident.created_at).toLocaleDateString("pt-BR")}
+              </span>
+            </div>
+            {incident.description && (
+              <span className="text-sm text-text">
+                {incident.description}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <details className="rounded-card bg-surface p-4 shadow-card">
+        <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
+          + Registrar ocorrência
+        </summary>
+        <form
+          action={createIncidentAction}
+          className="mt-4 flex flex-col gap-4"
+        >
+          <label className="flex flex-col gap-1 text-sm font-medium text-text">
+            Título
+            <input
+              type="text"
+              name="title"
+              required
+              placeholder="Febre leve na saída"
+              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-text">
+            Detalhes
+            <textarea
+              name="description"
+              rows={3}
+              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+            />
+          </label>
+          <button
+            type="submit"
+            className="rounded-pill bg-amber px-6 py-3 font-medium text-white transition hover:opacity-90"
+          >
+            Registrar ocorrência
+          </button>
+        </form>
+      </details>
 
       <details className="rounded-card bg-surface p-4 shadow-card">
         <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
