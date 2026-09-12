@@ -131,21 +131,23 @@ function ShiftCard({
 
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-xs font-semibold uppercase tracking-wide text-muted">
-        {label}
-      </span>
-      {entry.ausente ? (
-        <span className="w-fit rounded-pill bg-coral/10 px-3 py-1 text-xs font-semibold text-coral">
-          Ausente
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+          {label}
         </span>
-      ) : (
-        <>
-          {renderRow("Busca (ida)", entry.pickupIdaAt, expectedPickup)}
-          {renderRow("Chegada na escola", entry.dropoffIdaAt, null)}
-          {renderRow("Busca na escola (volta)", entry.pickupVoltaAt, null)}
-          {renderRow("Entrega em casa", entry.dropoffVoltaAt, expectedDropoff)}
-        </>
-      )}
+        {entry.ausente && (
+          <span className="rounded-pill bg-coral/10 px-2 py-0.5 text-xs font-semibold text-coral">
+            Ausente
+          </span>
+        )}
+      </div>
+      {/* Mesmo com ausência marcada (ex.: na volta), as pernas que já
+          aconteceram antes disso continuam visíveis — só as que não
+          rolaram aparecem como "—". */}
+      {renderRow("Busca (ida)", entry.pickupIdaAt, expectedPickup)}
+      {renderRow("Chegada na escola", entry.dropoffIdaAt, null)}
+      {renderRow("Busca na escola (volta)", entry.pickupVoltaAt, null)}
+      {renderRow("Entrega em casa", entry.dropoffVoltaAt, expectedDropoff)}
     </div>
   );
 }

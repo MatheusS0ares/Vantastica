@@ -223,7 +223,9 @@ export default async function RotaPage({
               }
               stage={stage}
               primaryAction={STAGE_PRIMARY[stage]}
-              showAusenteButton={stage === "aguardando_ida"}
+              showAusenteButton={
+                stage === "aguardando_ida" || stage === "aguardando_volta"
+              }
               embarcarAction={recordCheckin.bind(
                 null,
                 student.id,
