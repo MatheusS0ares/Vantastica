@@ -23,6 +23,8 @@ export async function getUserContext(): Promise<UserContext> {
     .from("organization_members")
     .select("organization_id")
     .eq("user_id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
     .maybeSingle();
 
   if (membership) {
@@ -37,6 +39,7 @@ export async function getUserContext(): Promise<UserContext> {
     .from("guardians")
     .select("id")
     .eq("user_id", user.id)
+    .limit(1)
     .maybeSingle();
 
   if (guardian) {
