@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 
 type CheckinAction = (formData: FormData) => void;
 
@@ -19,6 +20,23 @@ function initials(name: string) {
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase())
     .join("");
+}
+
+function ConfirmSubmitButton({ label }: { label: string }) {
+  // useFormStatus só enxerga o form quando usado num componente FILHO
+  // dele — por isso esse botão é extraído em vez de ficar direto no
+  // StudentCheckinCard.
+  const { pending } = useFormStatus();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="w-full rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90 disabled:opacity-60"
+    >
+      {pending ? "Enviando..." : label}
+    </button>
+  );
 }
 
 export function StudentCheckinCard({
@@ -43,6 +61,20 @@ export function StudentCheckinCard({
   showEntregarButton: boolean;
 }) {
   const [confirming, setConfirming] = useState<ConfirmKind | null>(null);
+
+  // Fecha o modal só quando o servidor de fato confirmar a mudança
+  // (essas props só mudam depois que a Server Action + revalidatePath
+  // trazem o novo status) — nunca no clique em si. Fechar no clique
+  // desmontava o <form> na mesma hora que o navegador tentava enviá-lo,
+  // então às vezes o check-in nunca chegava a ser registrado.
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setConfirming(null);
+  }, [showColetarButtons, showEntregarButton]);
 
   const actionFor: Record<ConfirmKind, CheckinAction> = {
     embarque: embarcarAction,
@@ -121,13 +153,7 @@ export function StudentCheckinCard({
             </div>
 
             <form action={actionFor[confirming]} className="w-full">
-              <button
-                type="submit"
-                onClick={() => setConfirming(null)}
-                className="w-full rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
-              >
-                {CONFIRM_COPY[confirming].button}
-              </button>
+              <ConfirmSubmitButton label={CONFIRM_COPY[confirming].button} />
             </form>
             <button
               type="button"
