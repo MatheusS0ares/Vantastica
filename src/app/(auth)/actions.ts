@@ -40,7 +40,16 @@ export async function signUpMotorista(formData: FormData) {
   const phone = readField(formData, "phone") || null;
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      // Se a confirmação de e-mail estiver ligada, ainda não teremos
+      // sessão pra chamar create_organization agora — guardamos aqui
+      // pra getUserContext completar o cadastro no primeiro login.
+      data: { pending_org_name: orgName, pending_org_phone: phone },
+    },
+  });
 
   if (error) {
     redirect(`/cadastro?error=${encodeURIComponent(error.message)}`);

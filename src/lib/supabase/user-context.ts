@@ -43,5 +43,24 @@ export async function getUserContext(): Promise<UserContext> {
     return { role: "responsavel", userId: user.id, guardianId: guardian.id };
   }
 
+  // Conta de motorista criada com confirmação de e-mail pendente: o
+  // signUp não tinha sessão ainda pra chamar create_organization na
+  // hora, então guardamos os dados em user_metadata. No primeiro login
+  // com sessão de verdade, completamos o cadastro aqui.
+  const pendingOrgName = user.user_metadata?.pending_org_name as
+    | string
+    | undefined;
+
+  if (pendingOrgName) {
+    const { data: newOrgId } = await supabase.rpc("create_organization", {
+      org_name: pendingOrgName,
+      org_phone: (user.user_metadata?.pending_org_phone as string) ?? null,
+    });
+
+    if (newOrgId) {
+      return { role: "motorista", userId: user.id, organizationId: newOrgId };
+    }
+  }
+
   return { role: null, userId: user.id };
 }
