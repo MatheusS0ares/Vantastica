@@ -4,15 +4,17 @@
 const TIMEZONE = "America/Sao_Paulo";
 const OFFSET = "-03:00"; // Brasil não observa mais horário de verão
 
-export function todayStartInBrazil(): Date {
-  const todayStr = new Intl.DateTimeFormat("en-CA", {
+export function dateKeyInBrazil(date: Date): string {
+  return new Intl.DateTimeFormat("en-CA", {
     timeZone: TIMEZONE,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(new Date());
+  }).format(date);
+}
 
-  return new Date(`${todayStr}T00:00:00${OFFSET}`);
+export function todayStartInBrazil(): Date {
+  return new Date(`${dateKeyInBrazil(new Date())}T00:00:00${OFFSET}`);
 }
 
 export function formatTimeInBrazil(date: Date): string {
@@ -21,4 +23,12 @@ export function formatTimeInBrazil(date: Date): string {
     minute: "2-digit",
     timeZone: TIMEZONE,
   });
+}
+
+// Converte "HH:MM" ou "HH:MM:SS" (formato de check-in ou da coluna
+// `time` do Postgres) em minutos desde a meia-noite, pra comparar
+// horário previsto x horário real de busca/entrega.
+export function timeStringToMinutes(hhmm: string): number {
+  const [hours, minutes] = hhmm.split(":").map(Number);
+  return hours * 60 + minutes;
 }

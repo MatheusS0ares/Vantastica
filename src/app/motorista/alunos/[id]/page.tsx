@@ -9,6 +9,7 @@ import {
   addGuardianToStudent,
   createIncident,
   updateStudentPhoto,
+  updateStudentSchedule,
 } from "../actions";
 
 type GuardianRow = {
@@ -34,7 +35,7 @@ export default async function AlunoDossiePage({
   const { data: student } = await supabase
     .from("students")
     .select(
-      "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes, photo_url",
+      "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes, photo_url, expected_pickup_time, expected_dropoff_time",
     )
     .eq("id", id)
     .maybeSingle();
@@ -62,6 +63,7 @@ export default async function AlunoDossiePage({
   const addGuardianAction = addGuardianToStudent.bind(null, id);
   const updatePhotoAction = updateStudentPhoto.bind(null, id);
   const createIncidentAction = createIncident.bind(null, id);
+  const updateScheduleAction = updateStudentSchedule.bind(null, id);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
@@ -108,6 +110,62 @@ export default async function AlunoDossiePage({
             {student.medical_notes}
           </span>
         )}
+      </div>
+
+      <div className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card">
+        <div className="flex items-center justify-between">
+          <span className="font-heading text-sm font-semibold text-navy">
+            Horários previstos
+          </span>
+          <Link
+            href={`/motorista/alunos/${id}/historico`}
+            className="text-sm text-blue"
+          >
+            Ver relatório →
+          </Link>
+        </div>
+        <span className="text-sm text-text">
+          Busca: {student.expected_pickup_time?.slice(0, 5) || "não definido"}
+        </span>
+        <span className="text-sm text-text">
+          Entrega: {student.expected_dropoff_time?.slice(0, 5) || "não definido"}
+        </span>
+        <details className="mt-1">
+          <summary className="cursor-pointer text-sm text-blue">
+            Editar horários
+          </summary>
+          <form
+            action={updateScheduleAction}
+            className="mt-3 flex flex-col gap-4"
+          >
+            <div className="flex gap-3">
+              <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
+                Busca
+                <input
+                  type="time"
+                  name="expectedPickupTime"
+                  defaultValue={student.expected_pickup_time?.slice(0, 5) ?? ""}
+                  className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+                />
+              </label>
+              <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
+                Entrega
+                <input
+                  type="time"
+                  name="expectedDropoffTime"
+                  defaultValue={student.expected_dropoff_time?.slice(0, 5) ?? ""}
+                  className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+                />
+              </label>
+            </div>
+            <button
+              type="submit"
+              className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
+            >
+              Salvar horários
+            </button>
+          </form>
+        </details>
       </div>
 
       <div className="flex flex-col gap-3">

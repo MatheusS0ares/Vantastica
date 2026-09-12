@@ -20,6 +20,9 @@ export async function createStudent(formData: FormData) {
   const pickupAddress = readField(formData, "pickupAddress") || null;
   const dropoffAddress = readField(formData, "dropoffAddress") || null;
   const medicalNotes = readField(formData, "medicalNotes") || null;
+  const expectedPickupTime = readField(formData, "expectedPickupTime") || null;
+  const expectedDropoffTime =
+    readField(formData, "expectedDropoffTime") || null;
   const photoFile = formData.get("photo") as File | null;
 
   const supabase = await createClient();
@@ -37,6 +40,8 @@ export async function createStudent(formData: FormData) {
       pickup_address: pickupAddress,
       dropoff_address: dropoffAddress,
       medical_notes: medicalNotes,
+      expected_pickup_time: expectedPickupTime,
+      expected_dropoff_time: expectedDropoffTime,
     })
     .select("id")
     .single();
@@ -107,6 +112,36 @@ export async function updateStudentPhoto(
   await deleteStudentPhoto(supabase, existing?.photo_url ?? null);
 
   revalidatePath(`/motorista/alunos/${studentId}`);
+}
+
+export async function updateStudentSchedule(
+  studentId: string,
+  formData: FormData,
+) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const expectedPickupTime = readField(formData, "expectedPickupTime") || null;
+  const expectedDropoffTime =
+    readField(formData, "expectedDropoffTime") || null;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("students")
+    .update({
+      expected_pickup_time: expectedPickupTime,
+      expected_dropoff_time: expectedDropoffTime,
+    })
+    .eq("id", studentId);
+
+  if (error) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  revalidatePath(`/motorista/alunos/${studentId}`);
+  revalidatePath(`/motorista/alunos/${studentId}/historico`);
 }
 
 export async function createIncident(studentId: string, formData: FormData) {
