@@ -2,11 +2,17 @@
 
 import { useState } from "react";
 
-export function CopyInviteLink({ token }: { token: string }) {
+export function CopyInviteLink({
+  token,
+  path = "/convite",
+}: {
+  token: string;
+  path?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
-    const url = `${window.location.origin}/convite/${token}`;
+    const url = `${window.location.origin}${path}/${token}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);

@@ -63,3 +63,20 @@ export async function deleteCalendarEvent(eventId: string) {
   revalidatePath("/motorista/perfil");
   revalidatePath("/responsavel/calendario");
 }
+
+export async function createOrganizationInvite() {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("organization_invites").insert({
+    organization_id: context.organizationId,
+    created_by: context.userId,
+  });
+
+  if (error) {
+    redirect(`/motorista/perfil?error=${encodeURIComponent(error.message)}`);
+  }
+
+  revalidatePath("/motorista/perfil");
+}

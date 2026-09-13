@@ -132,6 +132,73 @@ export async function signInResponsavel(token: string, formData: FormData) {
   await claimInviteOrRedirect(token);
 }
 
+async function claimOrganizationInviteOrRedirect(token: string) {
+  const supabase = await createClient();
+  const { data: organizationId, error } = await supabase.rpc(
+    "claim_organization_invite",
+    { token },
+  );
+
+  if (error || !organizationId) {
+    redirect(
+      `/convite-motorista/${token}?error=${encodeURIComponent(
+        "Convite inválido ou já utilizado.",
+      )}`,
+    );
+  }
+
+  redirect("/motorista");
+}
+
+export async function signUpMotoristaInvite(
+  token: string,
+  formData: FormData,
+) {
+  const email = readField(formData, "email");
+  const password = readField(formData, "password");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({ email, password });
+
+  if (error) {
+    redirect(
+      `/convite-motorista/${token}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  if (!data.session) {
+    redirect(
+      `/login?notice=${encodeURIComponent(
+        "Verifique seu e-mail para confirmar a conta e depois volte no link do convite para vincular.",
+      )}`,
+    );
+  }
+
+  await claimOrganizationInviteOrRedirect(token);
+}
+
+export async function signInMotoristaInvite(
+  token: string,
+  formData: FormData,
+) {
+  const email = readField(formData, "email");
+  const password = readField(formData, "password");
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    redirect(
+      `/convite-motorista/${token}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  await claimOrganizationInviteOrRedirect(token);
+}
+
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();

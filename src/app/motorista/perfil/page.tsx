@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
+import { CopyInviteLink } from "@/components/CopyInviteLink";
 import {
   createCalendarEvent,
+  createOrganizationInvite,
   deleteCalendarEvent,
   updateOrganization,
 } from "./actions";
@@ -23,18 +25,29 @@ export default async function PerfilMotoristaPage({
   const { error } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: org }, { data: events }] = await Promise.all([
-    supabase
-      .from("organizations")
-      .select("name, phone")
-      .eq("id", context.organizationId)
-      .maybeSingle(),
-    supabase
-      .from("school_calendar_events")
-      .select("id, event_date, title, event_type")
-      .eq("organization_id", context.organizationId)
-      .order("event_date", { ascending: true }),
-  ]);
+  const [{ data: org }, { data: events }, { count: memberCount }, { data: invites }] =
+    await Promise.all([
+      supabase
+        .from("organizations")
+        .select("name, phone")
+        .eq("id", context.organizationId)
+        .maybeSingle(),
+      supabase
+        .from("school_calendar_events")
+        .select("id, event_date, title, event_type")
+        .eq("organization_id", context.organizationId)
+        .order("event_date", { ascending: true }),
+      supabase
+        .from("organization_members")
+        .select("user_id", { count: "exact", head: true })
+        .eq("organization_id", context.organizationId),
+      supabase
+        .from("organization_invites")
+        .select("id, invite_token, created_at")
+        .eq("organization_id", context.organizationId)
+        .is("claimed_by", null)
+        .order("created_at", { ascending: false }),
+    ]);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
@@ -76,6 +89,48 @@ export default async function PerfilMotoristaPage({
             className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
           >
             Salvar
+          </button>
+        </form>
+      </div>
+
+      <div className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-card">
+        <span className="font-heading text-sm font-semibold text-navy">
+          Motoristas
+        </span>
+        <span className="text-sm text-text">
+          {memberCount ?? 0} motorista{memberCount === 1 ? "" : "s"} nessa
+          organização
+        </span>
+
+        {invites && invites.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Convites pendentes
+            </span>
+            {invites.map((invite) => (
+              <div
+                key={invite.id}
+                className="flex items-center justify-between rounded-input border border-border px-3 py-2"
+              >
+                <span className="text-xs text-muted">
+                  Convidado em{" "}
+                  {new Date(invite.created_at).toLocaleDateString("pt-BR")}
+                </span>
+                <CopyInviteLink
+                  token={invite.invite_token}
+                  path="/convite-motorista"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <form action={createOrganizationInvite}>
+          <button
+            type="submit"
+            className="rounded-pill border border-blue px-4 py-2 text-sm font-medium text-blue transition hover:opacity-80"
+          >
+            + Convidar motorista
           </button>
         </form>
       </div>

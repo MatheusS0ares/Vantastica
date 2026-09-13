@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { formatCentsAsBRL } from "@/lib/currency";
 import {
+  createBulkInvoices,
   createInvoice,
   markInvoiceAsPaid,
   updateOrgPixKey,
@@ -91,6 +92,58 @@ export default async function FinanceiroMotoristaPage({
           </button>
         </form>
       </div>
+
+      <details className="rounded-card bg-surface p-4 shadow-card">
+        <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
+          + Gerar mensalidades do mês (todos os alunos)
+        </summary>
+        <form
+          action={createBulkInvoices}
+          className="mt-4 flex flex-col gap-4"
+        >
+          <p className="text-xs text-muted">
+            Cria uma mensalidade com o mesmo valor e vencimento pra cada
+            aluno ativo. Quem já tiver mensalidade lançada nesse mês não é
+            afetado.
+          </p>
+          <label className="flex flex-col gap-1 text-sm font-medium text-text">
+            Mês de referência
+            <input
+              type="month"
+              name="referenceMonth"
+              required
+              defaultValue={today}
+              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-text">
+            Valor (R$)
+            <input
+              type="text"
+              name="amount"
+              required
+              placeholder="450,00"
+              inputMode="decimal"
+              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-text">
+            Vencimento
+            <input
+              type="date"
+              name="dueDate"
+              required
+              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+            />
+          </label>
+          <button
+            type="submit"
+            className="rounded-pill bg-mint px-6 py-3 font-medium text-white transition hover:opacity-90"
+          >
+            Gerar mensalidades
+          </button>
+        </form>
+      </details>
 
       <details className="rounded-card bg-surface p-4 shadow-card">
         <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
