@@ -241,41 +241,64 @@ export default async function AlunoDossiePage({
             className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
           >
             <p className="text-xs text-muted">
-              Deixe os dois horários em branco pra um turno que o aluno não
-              usa.
+              Cada turno completo tem 4 etapas registradas automaticamente
+              pela van (saída de casa → chegada na escola → saída da escola
+              → chegada em casa). Aqui você só define os horários previstos
+              de saída de casa e chegada em casa, usados pra calcular
+              atraso — as paradas na escola não precisam de horário
+              previsto.
             </p>
             {SHIFTS.map((shift) => {
               const info = shiftByName.get(shift);
-              return (
-                <div key={shift} className="flex flex-col gap-2">
-                  <span className="text-sm font-medium text-navy">
-                    {SHIFT_LABEL[shift]}
-                  </span>
-                  <div className="flex gap-3">
-                    <label className="flex flex-1 flex-col gap-1 text-sm text-text">
-                      Busca
-                      <input
-                        type="time"
-                        name={`${shift}_pickup`}
-                        defaultValue={
-                          info?.expected_pickup_time?.slice(0, 5) ?? ""
-                        }
-                        className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
-                      />
-                    </label>
-                    <label className="flex flex-1 flex-col gap-1 text-sm text-text">
-                      Entrega
-                      <input
-                        type="time"
-                        name={`${shift}_dropoff`}
-                        defaultValue={
-                          info?.expected_dropoff_time?.slice(0, 5) ?? ""
-                        }
-                        className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
-                      />
-                    </label>
-                  </div>
+              const isConfigured = shiftByName.has(shift);
+              const fields = (
+                <div className="flex gap-3">
+                  <label className="flex flex-1 flex-col gap-1 text-sm text-text">
+                    Saída de casa
+                    <input
+                      type="time"
+                      name={`${shift}_pickup`}
+                      defaultValue={
+                        info?.expected_pickup_time?.slice(0, 5) ?? ""
+                      }
+                      className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+                    />
+                  </label>
+                  <label className="flex flex-1 flex-col gap-1 text-sm text-text">
+                    Chegada em casa
+                    <input
+                      type="time"
+                      name={`${shift}_dropoff`}
+                      defaultValue={
+                        info?.expected_dropoff_time?.slice(0, 5) ?? ""
+                      }
+                      className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+                    />
+                  </label>
                 </div>
+              );
+
+              // A maioria dos alunos anda só num turno — só mostra os
+              // outros dois quando o motorista pedir explicitamente pra
+              // não confundir "turno não usado" com "esqueci de preencher".
+              if (isConfigured) {
+                return (
+                  <div key={shift} className="flex flex-col gap-2">
+                    <span className="text-sm font-medium text-navy">
+                      {SHIFT_LABEL[shift]}
+                    </span>
+                    {fields}
+                  </div>
+                );
+              }
+
+              return (
+                <details key={shift} className="rounded-input">
+                  <summary className="cursor-pointer text-sm font-medium text-muted">
+                    + Adicionar {SHIFT_LABEL[shift]} (outro período)
+                  </summary>
+                  <div className="mt-2">{fields}</div>
+                </details>
               );
             })}
             <button
