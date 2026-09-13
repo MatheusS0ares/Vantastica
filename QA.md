@@ -10,7 +10,12 @@ roteiro sempre que eu avisar que subi uma mudança grande.
       `0007_student_expected_times.sql`,
       `0008_shifts.sql`,
       `0009_organization_invites.sql`,
-      `0010_invoices_unique_month.sql`
+      `0010_invoices_unique_month.sql`,
+      `0011_platform_admin_and_branding.sql`
+- [ ] Virar admin da plataforma (só dá pra fazer direto no banco, de
+      propósito): no SQL Editor, rodar
+      `insert into platform_admins (user_id) select id from auth.users where email = 'SEU_EMAIL_AQUI';`
+      trocando pelo e-mail da conta que você já usa pra logar no VemVan
 - [ ] Confirmar que o deploy mais recente já subiu (vemvan.vercel.app —
       olha a data/hora do último deploy no painel da Vercel)
 
@@ -110,9 +115,15 @@ Um turno é a ida-e-volta inteira, não só um embarque e uma entrega.
 - [ ] Responsável: `/responsavel/historico` → ocorrência aparece em
       "Avisos"
 
-## 9. Perfil (van + calendário + motoristas)
+## 9. Perfil (van + identidade visual + calendário + motoristas)
 
-- [ ] `/motorista/perfil` → editar nome/telefone da van e salvar
+- [ ] `/motorista/perfil` → editar nome/telefone/placa/modelo/capacidade
+      da van e salvar
+- [ ] Em **Identidade Visual**, enviar uma logo → confirmar que ela
+      aparece no topo do app do motorista (ao lado do nome da
+      organização) depois de recarregar
+- [ ] Enviar também uma foto da van → confirmar que ela aparece no
+      card
 - [ ] **+ Novo evento no calendário** → cadastrar um feriado
 - [ ] Responsável: `/responsavel/calendario` → o feriado aparece em
       "Próximos eventos"
@@ -124,7 +135,23 @@ Um turno é a ida-e-volta inteira, não só um embarque e uma entrega.
 - [ ] Voltar no perfil da primeira conta → contagem de motoristas deve
       ter subido pra 2 e o convite não aparece mais como pendente
 
-## 10. Segurança básica
+## 10. Admin da plataforma
+
+- [ ] Logado com a conta que você tornou admin (passo 0), abrir
+      `/admin` → deve listar **todas** as organizações cadastradas
+      (mesmo as que você não criou), com contagem de motoristas/alunos
+- [ ] Tocar **Entrar como [organização de teste]** → deve cair em
+      `/motorista` dessa organização, com uma faixa azul no topo
+      "Modo admin — vendo como esta organização"
+- [ ] Usar o app normalmente nesse modo (ver um aluno, registrar um
+      check-in) → deve funcionar exatamente como se fosse o motorista
+      dono da organização
+- [ ] Tocar **Sair** na faixa azul → deve voltar pra `/admin`
+- [ ] Confirmar que uma conta comum de motorista (não-admin) continua
+      **sem** acesso a `/admin` (deve cair no login se tentar acessar
+      a URL direto)
+
+## 11. Segurança básica
 
 - [ ] Deslogado, tentar acessar `/motorista` direto pela URL → deve
       cair no `/login`
@@ -134,7 +161,7 @@ Um turno é a ida-e-volta inteira, não só um embarque e uma entrega.
       tentar abrir de novo → deve dar erro de "convite inválido ou já
       utilizado" (mesma coisa pro convite de motorista já usado)
 
-## 11. PWA (instalar como app)
+## 12. PWA (instalar como app)
 
 - [ ] No celular, abrir `vemvan.vercel.app/motorista` (ou
       `/responsavel`) no Chrome/Safari
@@ -142,7 +169,7 @@ Um turno é a ida-e-volta inteira, não só um embarque e uma entrega.
 - [ ] Confirmar que abre em tela cheia (sem barra do navegador) e com
       o ícone da VemVan
 
-## 12. Feedback ao toque
+## 13. Feedback ao toque
 
 - [ ] Em qualquer botão do app (Coletar, Salvar, abas de turno, etc.),
       confirmar que dá um leve "aperto" visual assim que toca, antes

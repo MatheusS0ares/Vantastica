@@ -58,3 +58,34 @@ export async function getStudentPhotoSignedUrl(
 
   return data.signedUrl;
 }
+
+const ORG_ASSETS_BUCKET = "org-assets";
+
+/**
+ * Logo e foto da van não são dados sensíveis, então o bucket é público —
+ * a URL retornada já é estável e final, sem precisar assinar/renovar
+ * como as fotos de aluno.
+ */
+export async function uploadOrgAsset(
+  supabase: SupabaseClient,
+  organizationId: string,
+  kind: "logo" | "van",
+  file: File,
+): Promise<string | null> {
+  if (!file || file.size === 0) return null;
+
+  const extension = file.name.split(".").pop() || "jpg";
+  const path = `${organizationId}/${kind}-${crypto.randomUUID()}.${extension}`;
+
+  const { error } = await supabase.storage
+    .from(ORG_ASSETS_BUCKET)
+    .upload(path, file, { contentType: file.type });
+
+  if (error) {
+    console.error("Falha ao subir imagem da organização:", error);
+    return null;
+  }
+
+  return supabase.storage.from(ORG_ASSETS_BUCKET).getPublicUrl(path).data
+    .publicUrl;
+}

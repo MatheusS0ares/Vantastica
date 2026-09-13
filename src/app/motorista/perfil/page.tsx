@@ -7,6 +7,7 @@ import {
   createOrganizationInvite,
   deleteCalendarEvent,
   updateOrganization,
+  updateOrganizationAsset,
 } from "./actions";
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
@@ -29,7 +30,9 @@ export default async function PerfilMotoristaPage({
     await Promise.all([
       supabase
         .from("organizations")
-        .select("name, phone")
+        .select(
+          "name, phone, van_plate, van_model, van_capacity, van_photo_url, logo_url",
+        )
         .eq("id", context.organizationId)
         .maybeSingle(),
       supabase
@@ -84,6 +87,39 @@ export default async function PerfilMotoristaPage({
               className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
             />
           </label>
+          <div className="flex gap-3">
+            <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
+              Placa da van
+              <input
+                type="text"
+                name="vanPlate"
+                defaultValue={org?.van_plate ?? ""}
+                placeholder="ABC-1234"
+                className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-1 flex-col gap-1 text-sm font-medium text-text">
+              Capacidade
+              <input
+                type="number"
+                name="vanCapacity"
+                min="1"
+                defaultValue={org?.van_capacity ?? ""}
+                placeholder="15"
+                className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+          </div>
+          <label className="flex flex-col gap-1 text-sm font-medium text-text">
+            Modelo da van
+            <input
+              type="text"
+              name="vanModel"
+              defaultValue={org?.van_model ?? ""}
+              placeholder="Mercedes-Benz Sprinter 2022"
+              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+            />
+          </label>
           <button
             type="submit"
             className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
@@ -91,6 +127,78 @@ export default async function PerfilMotoristaPage({
             Salvar
           </button>
         </form>
+      </div>
+
+      <div className="flex flex-col gap-4 rounded-card bg-surface p-4 shadow-card">
+        <span className="font-heading text-sm font-semibold text-navy">
+          Identidade Visual
+        </span>
+
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 overflow-hidden rounded-pill bg-blue/10">
+            {org?.logo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={org.logo_url}
+                alt="Logo"
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
+          <form
+            action={updateOrganizationAsset.bind(null, "logo")}
+            className="flex flex-1 flex-col gap-2"
+          >
+            <span className="text-sm font-medium text-text">
+              Logo da empresa
+            </span>
+            <input
+              type="file"
+              name="logo"
+              accept="image/*"
+              className="text-sm"
+            />
+            <button
+              type="submit"
+              className="w-fit rounded-pill border border-blue px-4 py-1.5 text-xs font-medium text-blue transition hover:opacity-80"
+            >
+              Enviar
+            </button>
+          </form>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 overflow-hidden rounded-card bg-blue/10">
+            {org?.van_photo_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={org.van_photo_url}
+                alt="Foto da van"
+                className="h-full w-full object-cover"
+              />
+            )}
+          </div>
+          <form
+            action={updateOrganizationAsset.bind(null, "van")}
+            className="flex flex-1 flex-col gap-2"
+          >
+            <span className="text-sm font-medium text-text">
+              Foto da van
+            </span>
+            <input
+              type="file"
+              name="van"
+              accept="image/*"
+              className="text-sm"
+            />
+            <button
+              type="submit"
+              className="w-fit rounded-pill border border-blue px-4 py-1.5 text-xs font-medium text-blue transition hover:opacity-80"
+            >
+              Enviar
+            </button>
+          </form>
+        </div>
       </div>
 
       <div className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-card">

@@ -1,8 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { getUserContext } from "@/lib/supabase/user-context";
+import {
+  getUserContext,
+  IMPERSONATION_COOKIE,
+} from "@/lib/supabase/user-context";
 
 function readField(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
@@ -25,6 +29,7 @@ export async function signIn(formData: FormData) {
   const context = await getUserContext();
   if (context.role === "motorista") redirect("/motorista");
   if (context.role === "responsavel") redirect("/responsavel");
+  if (context.role === "admin") redirect("/admin");
 
   redirect(
     `/login?error=${encodeURIComponent(
@@ -202,5 +207,9 @@ export async function signInMotoristaInvite(
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+
+  const cookieStore = await cookies();
+  cookieStore.delete(IMPERSONATION_COOKIE);
+
   redirect("/login");
 }

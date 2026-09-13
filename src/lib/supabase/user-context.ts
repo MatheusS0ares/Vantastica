@@ -1,9 +1,18 @@
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 
+export const IMPERSONATION_COOKIE = "impersonate_org";
+
 export type UserContext =
-  | { role: "motorista"; userId: string; organizationId: string }
+  | {
+      role: "motorista";
+      userId: string;
+      organizationId: string;
+      isAdminImpersonation?: boolean;
+    }
   | { role: "responsavel"; userId: string; guardianId: string }
+  | { role: "admin"; userId: string }
   | { role: null; userId: string | null };
 
 /**
@@ -24,6 +33,28 @@ export const getUserContext = cache(async (): Promise<UserContext> => {
 
   if (!user) {
     return { role: null, userId: null };
+  }
+
+  const { data: adminRow } = await supabase
+    .from("platform_admins")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  if (adminRow) {
+    const cookieStore = await cookies();
+    const impersonatedOrgId = cookieStore.get(IMPERSONATION_COOKIE)?.value;
+
+    if (impersonatedOrgId) {
+      return {
+        role: "motorista",
+        userId: user.id,
+        organizationId: impersonatedOrgId,
+        isAdminImpersonation: true,
+      };
+    }
+
+    return { role: "admin", userId: user.id };
   }
 
   const { data: membership } = await supabase
