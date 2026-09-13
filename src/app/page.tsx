@@ -35,31 +35,15 @@ export default function Home() {
         />
         <div className="relative flex flex-col items-center gap-6">
           <div className="flex items-center gap-3">
-            <svg viewBox="0 0 120 80" className="h-12 w-[72px]" aria-hidden>
-              <path
-                d="M14 26 L74 26 Q81 26 86 31 L99 44 Q110 47 110 57 L110 61 Q110 66 104 66 L14 66 Q8 66 8 60 L8 32 Q8 26 14 26 Z"
-                fill="currentColor"
-              />
-              <rect x="18" y="34" width="27" height="17" rx="4" fill="#2F855A" />
-              <rect x="51" y="34" width="21" height="17" rx="4" fill="#2F855A" />
-              <path
-                d="M81 34 H88 Q90 34 91 36 L97 45 Q98 48 95 48 H81 Q79 48 79 46 V36 Q79 34 81 34 Z"
-                fill="#2F855A"
-              />
-              <rect x="101" y="52" width="8" height="7" rx="2.5" fill="#2F855A" />
-              <circle cx="34" cy="66" r="10" fill="#2F855A" />
-              <circle cx="34" cy="66" r="4.4" fill="currentColor" />
-              <circle cx="88" cy="66" r="10" fill="#2F855A" />
-              <circle cx="88" cy="66" r="4.4" fill="currentColor" />
-            </svg>
-            <span className="flex items-baseline font-heading text-4xl font-bold">
-              <svg viewBox="0 0 70 66" className="mr-0.5 h-8 w-8" aria-hidden>
-                <g fill="none" strokeWidth="13" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M7 7 L35 59" stroke="currentColor" />
-                  <path d="M35 59 C43 40 47 20 63 7" stroke="#2F855A" />
-                </g>
-              </svg>
-              anTástica
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/icons/icon-192.png"
+              alt=""
+              aria-hidden
+              className="h-14 w-14 rounded-2xl shadow-fab"
+            />
+            <span className="font-heading text-4xl font-bold">
+              VanTástica
             </span>
           </div>
 
