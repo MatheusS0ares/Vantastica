@@ -11,7 +11,9 @@ roteiro sempre que eu avisar que subi uma mudança grande.
       `0008_shifts.sql`,
       `0009_organization_invites.sql`,
       `0010_invoices_unique_month.sql`,
-      `0011_platform_admin_and_branding.sql`
+      `0011_platform_admin_and_branding.sql`,
+      `0012_vehicle_locations.sql`,
+      `0013_student_shift_sequence.sql`
 - [ ] Virar admin da plataforma (só dá pra fazer direto no banco, de
       propósito): no SQL Editor, rodar
       `insert into platform_admins (user_id) select id from auth.users where email = 'SEU_EMAIL_AQUI';`
@@ -203,6 +205,21 @@ aproximada) — um como motorista, outro como responsável.
       tempo real no momento"
 - [ ] Confirmar que um responsável de **outra organização** não vê
       esse mapa nem essa localização (isolamento entre organizações)
+
+## 15. Sequência de paradas
+
+- [ ] Cadastrar (ou usar) pelo menos 3 alunos no mesmo turno em
+      `/motorista/rota`
+- [ ] Confirmar que aparecem as setinhas **↑/↓** ao lado de cada aluno
+      da lista (só aparecem quando há mais de um aluno no turno)
+- [ ] Tocar **↓** no primeiro aluno da lista → ele deve trocar de
+      posição com o segundo
+- [ ] Recarregar a página → a nova ordem deve se manter (a sequência é
+      salva, não só visual)
+- [ ] No primeiro aluno da lista, a seta **↑** deve estar desabilitada;
+      no último, a seta **↓** deve estar desabilitada
+- [ ] Trocar de turno (aba Vespertino, por exemplo) → a sequência de um
+      turno não deve afetar a ordem dos alunos nos outros turnos
 
 ---
 

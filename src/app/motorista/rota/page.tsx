@@ -7,7 +7,7 @@ import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 import { SHIFTS, SHIFT_LABEL, currentShift, isShift } from "@/lib/shifts";
 import { StudentCheckinCard, type PrimaryAction } from "@/components/StudentCheckinCard";
 import { ShareLocationToggle } from "@/components/ShareLocationToggle";
-import { recordCheckin } from "./actions";
+import { recordCheckin, moveStudentInShift } from "./actions";
 
 // Um turno é a ida-e-volta inteira de um grupo de alunos (ex.: matutino
 // = busca em casa + chegada na escola + busca na escola ao meio-dia +
@@ -95,6 +95,7 @@ function stageFor(events: { event_type: string }[]): Stage {
 
 type ShiftStudentRow = {
   student_id: string;
+  sequence_order: number | null;
   students: {
     id: string;
     full_name: string;
@@ -119,16 +120,25 @@ export default async function RotaPage({
   const { data: shiftRowsRaw } = await supabase
     .from("student_shifts")
     .select(
-      "student_id, students(id, full_name, pickup_address, photo_url, is_active)",
+      "student_id, sequence_order, students(id, full_name, pickup_address, photo_url, is_active)",
     )
     .eq("shift", selectedShift);
 
-  const students = (shiftRowsRaw ?? [])
-    .map((row) => row.students as unknown as ShiftStudentRow["students"])
-    .filter((s): s is NonNullable<ShiftStudentRow["students"]> =>
-      Boolean(s && s.is_active),
+  const shiftRows = (shiftRowsRaw ?? []) as unknown as ShiftStudentRow[];
+
+  const students = shiftRows
+    .filter((row): row is ShiftStudentRow & { students: NonNullable<ShiftStudentRow["students"]> } =>
+      Boolean(row.students && row.students.is_active),
     )
-    .sort((a, b) => a.full_name.localeCompare(b.full_name));
+    .sort((a, b) => {
+      if (a.sequence_order !== null && b.sequence_order !== null) {
+        return a.sequence_order - b.sequence_order;
+      }
+      if (a.sequence_order !== null) return -1;
+      if (b.sequence_order !== null) return 1;
+      return a.students.full_name.localeCompare(b.students.full_name);
+    })
+    .map((row) => row.students);
 
   const studentIds = students.map((s) => s.id);
 
@@ -285,6 +295,44 @@ export default async function RotaPage({
                       "ausente",
                     )}
                   />
+                  {students.length > 1 && (
+                    <div className="relative z-10 flex flex-col gap-1 pt-0.5">
+                      <form
+                        action={moveStudentInShift.bind(
+                          null,
+                          selectedShift,
+                          student.id,
+                          "up",
+                        )}
+                      >
+                        <button
+                          type="submit"
+                          disabled={index === 0}
+                          aria-label="Mover para cima na sequência"
+                          className="flex h-6 w-6 items-center justify-center rounded-pill bg-surface text-xs text-muted shadow-card transition disabled:opacity-30"
+                        >
+                          ↑
+                        </button>
+                      </form>
+                      <form
+                        action={moveStudentInShift.bind(
+                          null,
+                          selectedShift,
+                          student.id,
+                          "down",
+                        )}
+                      >
+                        <button
+                          type="submit"
+                          disabled={index === students.length - 1}
+                          aria-label="Mover para baixo na sequência"
+                          className="flex h-6 w-6 items-center justify-center rounded-pill bg-surface text-xs text-muted shadow-card transition disabled:opacity-30"
+                        >
+                          ↓
+                        </button>
+                      </form>
+                    </div>
+                  )}
                 </div>
               );
             })}
