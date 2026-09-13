@@ -61,6 +61,91 @@ export async function createStudent(formData: FormData) {
   redirect(`/motorista/alunos/${data.id}`);
 }
 
+export async function updateStudentInfo(
+  studentId: string,
+  formData: FormData,
+) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const fullName = readField(formData, "fullName");
+  const schoolName = readField(formData, "schoolName") || null;
+  const className = readField(formData, "className") || null;
+  const pickupAddress = readField(formData, "pickupAddress") || null;
+  const dropoffAddress = readField(formData, "dropoffAddress") || null;
+  const medicalNotes = readField(formData, "medicalNotes") || null;
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("students")
+    .update({
+      full_name: fullName,
+      school_name: schoolName,
+      class_name: className,
+      pickup_address: pickupAddress,
+      dropoff_address: dropoffAddress,
+      medical_notes: medicalNotes,
+    })
+    .eq("id", studentId);
+
+  if (error) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  revalidatePath(`/motorista/alunos/${studentId}`);
+  revalidatePath("/motorista/alunos");
+  revalidatePath("/motorista/rota");
+}
+
+export async function updateGuardian(
+  studentId: string,
+  guardianId: string,
+  formData: FormData,
+) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const fullName = readField(formData, "fullName");
+  const phone = readField(formData, "phone") || null;
+  const relationship = readField(formData, "relationship") || null;
+  const isPrimaryContact = formData.get("isPrimaryContact") === "on";
+  const canPickUp = formData.get("canPickUp") === "on";
+
+  const supabase = await createClient();
+
+  const { error: guardianError } = await supabase
+    .from("guardians")
+    .update({ full_name: fullName, phone })
+    .eq("id", guardianId);
+
+  if (guardianError) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(guardianError.message)}`,
+    );
+  }
+
+  const { error: linkError } = await supabase
+    .from("student_guardians")
+    .update({
+      relationship,
+      is_primary_contact: isPrimaryContact,
+      can_pick_up: canPickUp,
+    })
+    .eq("student_id", studentId)
+    .eq("guardian_id", guardianId);
+
+  if (linkError) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(linkError.message)}`,
+    );
+  }
+
+  revalidatePath(`/motorista/alunos/${studentId}`);
+}
+
 export async function updateStudentPhoto(
   studentId: string,
   formData: FormData,

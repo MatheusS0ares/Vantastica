@@ -14,6 +14,8 @@ import {
 import {
   addGuardianToStudent,
   createIncident,
+  updateGuardian,
+  updateStudentInfo,
   updateStudentPhoto,
   updateStudentShifts,
 } from "../actions";
@@ -118,6 +120,7 @@ export default async function AlunoDossiePage({
   const updatePhotoAction = updateStudentPhoto.bind(null, id);
   const createIncidentAction = createIncident.bind(null, id);
   const updateShiftsAction = updateStudentShifts.bind(null, id);
+  const updateInfoAction = updateStudentInfo.bind(null, id);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
@@ -187,6 +190,79 @@ export default async function AlunoDossiePage({
             <span className="text-sm text-text">{student.medical_notes}</span>
           </div>
         )}
+
+        <details className="mt-1">
+          <summary className="cursor-pointer text-sm font-medium text-blue">
+            Editar dados do aluno
+          </summary>
+          <form
+            action={updateInfoAction}
+            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
+          >
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Nome completo
+              <input
+                type="text"
+                name="fullName"
+                required
+                defaultValue={student.full_name}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Escola
+              <input
+                type="text"
+                name="schoolName"
+                defaultValue={student.school_name ?? ""}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Turma
+              <input
+                type="text"
+                name="className"
+                defaultValue={student.class_name ?? ""}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Endereço de coleta
+              <input
+                type="text"
+                name="pickupAddress"
+                defaultValue={student.pickup_address ?? ""}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Endereço de entrega
+              <input
+                type="text"
+                name="dropoffAddress"
+                placeholder="Deixe em branco se for o mesmo da coleta"
+                defaultValue={student.dropoff_address ?? ""}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Observações médicas
+              <textarea
+                name="medicalNotes"
+                rows={2}
+                defaultValue={student.medical_notes ?? ""}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
+            >
+              Salvar dados
+            </button>
+          </form>
+        </details>
       </div>
 
       {/* Turnos */}
@@ -368,6 +444,67 @@ export default async function AlunoDossiePage({
                     <CopyInviteLink token={guardian.invite_token} />
                   </>
                 )}
+
+                <details>
+                  <summary className="cursor-pointer text-xs font-medium text-blue">
+                    Editar
+                  </summary>
+                  <form
+                    action={updateGuardian.bind(null, id, guardian.id)}
+                    className="mt-2 flex flex-col gap-3 rounded-input bg-surface p-3"
+                  >
+                    <label className="flex flex-col gap-1 text-sm font-medium text-text">
+                      Nome completo
+                      <input
+                        type="text"
+                        name="fullName"
+                        required
+                        defaultValue={guardian.full_name}
+                        className="rounded-input border border-border bg-bg px-3 py-2 text-base outline-none focus:border-blue"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-sm font-medium text-text">
+                      Telefone
+                      <input
+                        type="tel"
+                        name="phone"
+                        defaultValue={guardian.phone ?? ""}
+                        className="rounded-input border border-border bg-bg px-3 py-2 text-base outline-none focus:border-blue"
+                      />
+                    </label>
+                    <label className="flex flex-col gap-1 text-sm font-medium text-text">
+                      Parentesco
+                      <input
+                        type="text"
+                        name="relationship"
+                        defaultValue={link.relationship ?? ""}
+                        className="rounded-input border border-border bg-bg px-3 py-2 text-base outline-none focus:border-blue"
+                      />
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text">
+                      <input
+                        type="checkbox"
+                        name="isPrimaryContact"
+                        defaultChecked={link.is_primary_contact}
+                      />
+                      Contato principal
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-text">
+                      <input
+                        type="checkbox"
+                        name="canPickUp"
+                        defaultChecked={link.can_pick_up}
+                      />
+                      Autorizado a buscar a criança
+                    </label>
+                    <button
+                      type="submit"
+                      className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
+                    >
+                      Salvar responsável
+                    </button>
+                  </form>
+                </details>
               </div>
             );
           })}

@@ -176,8 +176,17 @@ export function StudentCheckinCard({
               action={
                 confirming === "ausente" ? ausenteAction : primaryFormAction
               }
-              className="w-full"
+              className="flex w-full flex-col gap-3"
             >
+              <label className="flex flex-col gap-1 text-left text-sm text-text">
+                Alguma ocorrência? (opcional)
+                <textarea
+                  name="occurrence"
+                  rows={2}
+                  placeholder="Ex.: esqueceu a mochila, chegou chorando..."
+                  className="rounded-input border border-border bg-bg px-3 py-2 text-sm outline-none focus:border-blue"
+                />
+              </label>
               <ConfirmSubmitButton
                 label={
                   confirming === "ausente"

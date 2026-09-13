@@ -13,6 +13,7 @@ export async function recordCheckin(
   studentId: string,
   shift: Shift,
   eventType: CheckinEvent,
+  formData: FormData,
 ) {
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
@@ -44,6 +45,19 @@ export async function recordCheckin(
     );
   }
 
+  // Pergunta opcional de ocorrência dentro do próprio modal de
+  // embarque/desembarque — evita depender do motorista lembrar de ir no
+  // dossiê registrar algo que aconteceu bem na hora da coleta/entrega.
+  const occurrence = String(formData.get("occurrence") ?? "").trim();
+  if (occurrence) {
+    await supabase.from("incidents").insert({
+      organization_id: context.organizationId,
+      student_id: studentId,
+      title: occurrence,
+      created_by: context.userId,
+    });
+  }
+
   if (student) {
     const { data: guardianLinks } = await supabase
       .from("student_guardians")
@@ -69,6 +83,9 @@ export async function recordCheckin(
   }
 
   revalidatePath("/motorista/rota");
+  if (occurrence) {
+    revalidatePath(`/motorista/alunos/${studentId}`);
+  }
 }
 
 /**
