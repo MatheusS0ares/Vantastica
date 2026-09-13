@@ -19,11 +19,14 @@ export async function recordCheckin(
 
   const supabase = await createClient();
 
-  const { data: student } = await supabase
-    .from("students")
-    .select("full_name")
-    .eq("id", studentId)
-    .single();
+  const [{ data: student }, { data: organization }] = await Promise.all([
+    supabase.from("students").select("full_name").eq("id", studentId).single(),
+    supabase
+      .from("organizations")
+      .select("name, logo_url")
+      .eq("id", context.organizationId)
+      .maybeSingle(),
+  ]);
 
   const occurredAt = new Date();
 
@@ -60,6 +63,8 @@ export async function recordCheckin(
       eventType,
       occurredAt,
       guardianEmails,
+      organizationName: organization?.name ?? "VemVan",
+      organizationLogoUrl: organization?.logo_url,
     });
   }
 

@@ -25,6 +25,14 @@ export function formatTimeInBrazil(date: Date): string {
   });
 }
 
+export function formatDateInBrazil(date: Date): string {
+  return date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "long",
+    timeZone: TIMEZONE,
+  });
+}
+
 // Converte "HH:MM" ou "HH:MM:SS" (formato de check-in ou da coluna
 // `time` do Postgres) em minutos desde a meia-noite, pra comparar
 // horário previsto x horário real de busca/entrega.
