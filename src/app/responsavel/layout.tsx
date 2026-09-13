@@ -5,11 +5,11 @@ import { SignOutButton } from "@/components/SignOutButton";
 import { ResponsavelNav } from "@/components/ResponsavelNav";
 
 export const metadata: Metadata = {
-  title: "VemVan Responsável",
+  title: "VanTástica Responsável",
   manifest: "/manifest-responsavel.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "VemVan",
+    title: "VanTástica",
     statusBarStyle: "default",
   },
   icons: {

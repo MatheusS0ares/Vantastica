@@ -1,4 +1,4 @@
-# VemVan
+# VanTástica
 
 Gestão inteligente de vans escolares — SaaS multi-tenant para donos e
 motoristas de van organizarem rotas, check-in dos alunos e comunicação

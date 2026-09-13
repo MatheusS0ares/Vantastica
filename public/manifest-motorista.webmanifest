@@ -1,6 +1,6 @@
 {
-  "name": "VemVan Motorista",
-  "short_name": "VemVan Motorista",
+  "name": "VanTástica Motorista",
+  "short_name": "VanTástica",
   "description": "Gestão de rotas, alunos e financeiro para donos e motoristas de van escolar.",
   "start_url": "/motorista",
   "scope": "/motorista",

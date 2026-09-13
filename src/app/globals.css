@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  /* Brand palette — VemVan Design System */
+  /* Brand palette — VanTástica Design System */
   --color-navy: #1a365d; /* Azul Segurança — headers, botões primários */
   --color-blue: #2b6cb0; /* Azul Conexão — links, ícones ativos */
   --color-mint: #2f855a; /* Verde Cuidado — status positivo/confirmação */

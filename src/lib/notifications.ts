@@ -5,12 +5,16 @@ type CheckinEvent = "embarque" | "entrega" | "ausente";
 
 // Sem domínio verificado no Resend, o remetente é obrigatoriamente
 // onboarding@resend.dev — assim que um domínio próprio for verificado,
-// troca só a env var RESEND_FROM_EMAIL (ex.: "VemVan <noreply@vemvan.com.br>"),
+// troca só a env var RESEND_FROM_EMAIL (ex.: "VanTástica <noreply@vantastica.com.br>"),
 // sem precisar mexer em código.
 const FROM_EMAIL =
-  process.env.RESEND_FROM_EMAIL || "VemVan <onboarding@resend.dev>";
+  process.env.RESEND_FROM_EMAIL || "VanTástica <onboarding@resend.dev>";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://vemvan.vercel.app";
+// Assume que o projeto na Vercel também foi renomeado pra "vantastica"
+// (Settings → General → Project Name) — se o domínio final for outro,
+// configure NEXT_PUBLIC_SITE_URL na Vercel em vez de mudar aqui.
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://vantastica.vercel.app";
 const DEFAULT_LOGO_URL = `${SITE_URL}/logo.png`;
 
 const EVENT_COPY: Record<
@@ -106,7 +110,7 @@ export function buildCheckinEmailHtml({
               <td style="padding:20px 28px;background-color:#F7FAFC;border-top:1px solid #E2E8F0;">
                 <p style="margin:0;color:#A0AEC0;font-size:12px;line-height:1.6;">
                   Você recebeu este e-mail porque é responsável por
-                  ${studentName} na ${organizationName}, via VemVan.
+                  ${studentName} na ${organizationName}, via VanTástica.
                   Notificação automática — não é preciso responder.
                 </p>
               </td>
@@ -133,7 +137,7 @@ function buildCheckinEmailText({
   organizationName: string;
 }) {
   const copy = EVENT_COPY[eventType];
-  return `${copy.title}: ${studentName} ${copy.body}\n${dateLabel} às ${time}\n\n${organizationName} · VemVan`;
+  return `${copy.title}: ${studentName} ${copy.body}\n${dateLabel} às ${time}\n\n${organizationName} · VanTástica`;
 }
 
 /**

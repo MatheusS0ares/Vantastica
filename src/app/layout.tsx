@@ -16,14 +16,14 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VemVan",
+  title: "VanTástica",
   description: "Gestão inteligente de vans escolares",
   icons: {
     apple: "/icons/apple-touch-icon.png",
   },
   appleWebApp: {
     capable: true,
-    title: "VemVan",
+    title: "VanTástica",
     statusBarStyle: "default",
   },
   other: {

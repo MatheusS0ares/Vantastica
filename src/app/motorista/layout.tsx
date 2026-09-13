@@ -7,11 +7,11 @@ import { MotoristaNav } from "@/components/MotoristaNav";
 import { stopImpersonating } from "@/app/admin/actions";
 
 export const metadata: Metadata = {
-  title: "VemVan Motorista",
+  title: "VanTástica Motorista",
   manifest: "/manifest-motorista.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "VemVan Motorista",
+    title: "VanTástica Motorista",
     statusBarStyle: "default",
   },
   icons: {

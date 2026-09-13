@@ -17,7 +17,7 @@ export default async function AdminLayout({
     <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between px-4 py-2">
         <span className="font-heading text-sm font-semibold text-navy">
-          VemVan Admin
+          VanTástica Admin
         </span>
         <SignOutButton />
       </div>

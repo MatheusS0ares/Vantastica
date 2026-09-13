@@ -63,7 +63,7 @@ export async function recordCheckin(
       eventType,
       occurredAt,
       guardianEmails,
-      organizationName: organization?.name ?? "VemVan",
+      organizationName: organization?.name ?? "VanTástica",
       organizationLogoUrl: organization?.logo_url,
     });
   }

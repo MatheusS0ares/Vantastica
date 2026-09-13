@@ -1,4 +1,4 @@
-# Roteiro de QA — VemVan
+# Roteiro de QA — VanTástica
 
 Checklist manual pra validar o que já está construído. Repita esse
 roteiro sempre que eu avisar que subi uma mudança grande.
@@ -15,8 +15,8 @@ roteiro sempre que eu avisar que subi uma mudança grande.
 - [ ] Virar admin da plataforma (só dá pra fazer direto no banco, de
       propósito): no SQL Editor, rodar
       `insert into platform_admins (user_id) select id from auth.users where email = 'SEU_EMAIL_AQUI';`
-      trocando pelo e-mail da conta que você já usa pra logar no VemVan
-- [ ] Confirmar que o deploy mais recente já subiu (vemvan.vercel.app —
+      trocando pelo e-mail da conta que você já usa pra logar no VanTástica
+- [ ] Confirmar que o deploy mais recente já subiu (vantastica.vercel.app —
       olha a data/hora do último deploy no painel da Vercel)
 
 ⚠️ **Sobre e-mail**: sua conta Resend ainda não tem domínio verificado.
@@ -29,7 +29,7 @@ normal, só o e-mail não chega (e isso é esperado, não é bug).
 
 ## 1. Cadastro do motorista
 
-- [ ] Abrir `vemvan.vercel.app/cadastro`
+- [ ] Abrir `vantastica.vercel.app/cadastro`
 - [ ] Criar conta com nome da van, e-mail e senha
 - [ ] Confirma que cai direto no Dashboard do motorista (`/motorista`)
 
@@ -172,11 +172,11 @@ Um turno é a ida-e-volta inteira, não só um embarque e uma entrega.
 
 ## 12. PWA (instalar como app)
 
-- [ ] No celular, abrir `vemvan.vercel.app/motorista` (ou
+- [ ] No celular, abrir `vantastica.vercel.app/motorista` (ou
       `/responsavel`) no Chrome/Safari
 - [ ] Adicionar à Tela de Início
 - [ ] Confirmar que abre em tela cheia (sem barra do navegador) e com
-      o ícone da VemVan
+      o ícone da VanTástica
 
 ## 13. Feedback ao toque
 

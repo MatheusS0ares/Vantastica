@@ -1,4 +1,4 @@
-const CACHE_NAME = "vemvan-shell-v1";
+const CACHE_NAME = "vantastica-shell-v1";
 const APP_SHELL = ["/", "/motorista", "/responsavel"];
 
 self.addEventListener("install", (event) => {

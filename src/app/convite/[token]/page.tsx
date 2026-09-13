@@ -14,7 +14,7 @@ export default async function ConvitePage({
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <div className="w-full max-w-sm rounded-card bg-surface p-6 shadow-card">
         <h1 className="font-heading text-xl font-bold text-navy">
-          Você foi convidado pro VemVan
+          Você foi convidado pro VanTástica
         </h1>
         <p className="mt-1 text-sm text-muted">
           Crie sua conta pra acompanhar seu filho em tempo real.
