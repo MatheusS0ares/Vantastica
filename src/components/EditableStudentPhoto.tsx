@@ -12,21 +12,39 @@ function initials(name: string) {
     .join("");
 }
 
+const SIZE_CLASSES = {
+  sm: {
+    wrapper: "h-16 w-16",
+    initials: "text-lg",
+    badge: "h-6 w-6",
+    iconSize: 14,
+  },
+  lg: {
+    wrapper: "h-32 w-32",
+    initials: "text-4xl",
+    badge: "h-10 w-10",
+    iconSize: 20,
+  },
+} as const;
+
 export function EditableStudentPhoto({
   studentName,
   photoUrl,
   updatePhotoAction,
+  size = "sm",
 }: {
   studentName: string;
   photoUrl: string | null;
   updatePhotoAction: (formData: FormData) => void;
+  size?: "sm" | "lg";
 }) {
+  const s = SIZE_CLASSES[size];
+
   return (
-    <form
-      action={updatePhotoAction}
-      className="relative h-16 w-16 shrink-0"
-    >
-      <label className="block h-16 w-16 cursor-pointer overflow-hidden rounded-pill bg-blue/10">
+    <form action={updatePhotoAction} className={`relative shrink-0 ${s.wrapper}`}>
+      <label
+        className={`block cursor-pointer overflow-hidden rounded-pill bg-blue/10 ${s.wrapper}`}
+      >
         {photoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -35,7 +53,9 @@ export function EditableStudentPhoto({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center font-heading text-lg font-semibold text-blue">
+          <div
+            className={`flex h-full w-full items-center justify-center font-heading font-semibold text-blue ${s.initials}`}
+          >
             {initials(studentName)}
           </div>
         )}
@@ -51,8 +71,10 @@ export function EditableStudentPhoto({
           }}
         />
       </label>
-      <span className="pointer-events-none absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-pill bg-navy text-white shadow-card">
-        <CameraIcon />
+      <span
+        className={`pointer-events-none absolute -bottom-1 -right-1 flex items-center justify-center rounded-pill bg-navy text-white shadow-card ${s.badge}`}
+      >
+        <CameraIcon size={s.iconSize} />
       </span>
     </form>
   );

@@ -129,6 +129,43 @@ export function CameraIcon({ size = 14 }: IconProps) {
   );
 }
 
+export function AlertIcon({ size = 20 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 4 3 19h18Z" />
+      <path d="M12 10v4" />
+      <circle cx="12" cy="16.7" r="0.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function MapPinIcon({ size = 20 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 21s-7-6.4-7-11.5A7 7 0 0 1 19 9.5C19 14.6 12 21 12 21Z" />
+      <circle cx="12" cy="9.5" r="2.3" />
+    </svg>
+  );
+}
+
 export function CalendarIcon({ size = 20 }: IconProps) {
   return (
     <svg

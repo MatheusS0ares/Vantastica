@@ -6,6 +6,12 @@ import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import {
+  AlertIcon,
+  ClockIcon,
+  MapPinIcon,
+  UsersIcon,
+} from "@/components/icons";
+import {
   addGuardianToStudent,
   createIncident,
   updateStudentPhoto,
@@ -26,6 +32,37 @@ type StudentShiftRow = {
   expected_pickup_time: string | null;
   expected_dropoff_time: string | null;
 };
+
+function SectionHeader({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start gap-2.5">
+        <span className="mt-0.5 text-blue">{icon}</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="font-heading text-sm font-semibold text-navy">
+            {title}
+          </span>
+          {description && (
+            <span className="text-xs leading-snug text-muted">
+              {description}
+            </span>
+          )}
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
 
 export default async function AlunoDossiePage({
   params,
@@ -61,6 +98,7 @@ export default async function AlunoDossiePage({
   const shiftByName = new Map(
     ((shiftsRaw ?? []) as StudentShiftRow[]).map((s) => [s.shift, s]),
   );
+  const configuredShifts = SHIFTS.filter((shift) => shiftByName.has(shift));
 
   const { data: guardianLinks } = await supabase
     .from("student_guardians")
@@ -83,7 +121,10 @@ export default async function AlunoDossiePage({
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
-      <Link href="/motorista/alunos" className="text-sm text-muted">
+      <Link
+        href="/motorista/alunos"
+        className="flex w-fit items-center gap-1 text-sm font-medium text-muted"
+      >
         ← Alunos
       </Link>
 
@@ -93,14 +134,16 @@ export default async function AlunoDossiePage({
         </p>
       )}
 
-      <div className="flex items-center gap-4">
+      {/* Hero: foto grande em destaque + identificação do aluno */}
+      <div className="flex flex-col items-center gap-3 rounded-card bg-surface p-6 text-center shadow-card">
         <EditableStudentPhoto
           studentName={student.full_name}
           photoUrl={photoUrl}
           updatePhotoAction={updatePhotoAction}
+          size="lg"
         />
         <div className="flex flex-col gap-1">
-          <h1 className="font-heading text-xl font-bold text-navy">
+          <h1 className="font-heading text-2xl font-bold text-navy">
             {student.full_name}
           </h1>
           <span className="text-sm text-muted">
@@ -109,66 +152,93 @@ export default async function AlunoDossiePage({
               .join(" · ") || "Sem escola/turma cadastrada"}
           </span>
         </div>
+        <span className="text-xs text-muted">Toque na foto pra trocar</span>
       </div>
 
-      <div className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card">
-        <span className="font-heading text-sm font-semibold text-navy">
-          Endereços
-        </span>
-        <span className="text-sm text-text">
-          Coleta: {student.pickup_address || "não informado"}
-        </span>
-        <span className="text-sm text-text">
-          Entrega: {student.dropoff_address || "mesma da coleta"}
-        </span>
-        {student.medical_notes && (
-          <span className="mt-1 rounded-input bg-amber/10 px-3 py-2 text-sm text-text">
-            {student.medical_notes}
-          </span>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-card">
-        <div className="flex items-center justify-between">
-          <span className="font-heading text-sm font-semibold text-navy">
-            Turnos
-          </span>
-          <Link
-            href={`/motorista/alunos/${id}/historico`}
-            className="text-sm text-blue"
-          >
-            Ver relatório →
-          </Link>
+      {/* Endereços */}
+      <div className="flex flex-col gap-3 rounded-card bg-surface p-5 shadow-card">
+        <SectionHeader
+          icon={<MapPinIcon size={18} />}
+          title="Endereços"
+          description="De onde a van busca e pra onde leva o aluno"
+        />
+        <div className="flex flex-col gap-2 rounded-input bg-bg px-3 py-3">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Coleta
+            </span>
+            <span className="text-sm text-text">
+              {student.pickup_address || "Não informado"}
+            </span>
+          </div>
+          <div className="h-px bg-border" />
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Entrega
+            </span>
+            <span className="text-sm text-text">
+              {student.dropoff_address || "Mesma da coleta"}
+            </span>
+          </div>
         </div>
+        {student.medical_notes && (
+          <div className="flex items-start gap-2 rounded-input bg-amber/10 px-3 py-2.5">
+            <AlertIcon size={16} />
+            <span className="text-sm text-text">{student.medical_notes}</span>
+          </div>
+        )}
+      </div>
 
-        {SHIFTS.filter((shift) => shiftByName.has(shift)).length === 0 && (
-          <p className="text-sm text-muted">
-            Nenhum turno configurado ainda.
+      {/* Turnos */}
+      <div className="flex flex-col gap-3 rounded-card bg-surface p-5 shadow-card">
+        <SectionHeader
+          icon={<ClockIcon size={18} />}
+          title="Turnos"
+          description="Horários de busca e entrega usados pra calcular atrasos"
+          action={
+            <Link
+              href={`/motorista/alunos/${id}/historico`}
+              className="text-sm font-medium text-blue"
+            >
+              Relatório →
+            </Link>
+          }
+        />
+
+        {configuredShifts.length === 0 ? (
+          <p className="rounded-input bg-amber/10 px-3 py-2.5 text-sm text-amber">
+            Nenhum turno configurado ainda — sem isso, a rota de hoje não
+            mostra esse aluno.
           </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {configuredShifts.map((shift) => {
+              const info = shiftByName.get(shift);
+              return (
+                <div
+                  key={shift}
+                  className="flex items-center justify-between rounded-input bg-bg px-3 py-2.5"
+                >
+                  <span className="text-sm font-medium text-navy">
+                    {SHIFT_LABEL[shift]}
+                  </span>
+                  <span className="text-sm text-text">
+                    {info?.expected_pickup_time?.slice(0, 5) || "—"} →{" "}
+                    {info?.expected_dropoff_time?.slice(0, 5) || "—"}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         )}
 
-        {SHIFTS.filter((shift) => shiftByName.has(shift)).map((shift) => {
-          const info = shiftByName.get(shift);
-          return (
-            <div key={shift} className="flex items-center justify-between">
-              <span className="text-sm font-medium text-navy">
-                {SHIFT_LABEL[shift]}
-              </span>
-              <span className="text-sm text-text">
-                Busca {info?.expected_pickup_time?.slice(0, 5) || "—"} ·
-                Entrega {info?.expected_dropoff_time?.slice(0, 5) || "—"}
-              </span>
-            </div>
-          );
-        })}
-
-        <details className="mt-1">
-          <summary className="cursor-pointer text-sm text-blue">
+        <details className="group mt-1 rounded-input">
+          <summary className="cursor-pointer text-sm font-medium text-blue">
             Editar turnos
           </summary>
           <form
             action={updateShiftsAction}
-            className="mt-3 flex flex-col gap-4"
+            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
           >
             <p className="text-xs text-muted">
               Deixe os dois horários em branco pra um turno que o aluno não
@@ -190,7 +260,7 @@ export default async function AlunoDossiePage({
                         defaultValue={
                           info?.expected_pickup_time?.slice(0, 5) ?? ""
                         }
-                        className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+                        className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
                       />
                     </label>
                     <label className="flex flex-1 flex-col gap-1 text-sm text-text">
@@ -201,7 +271,7 @@ export default async function AlunoDossiePage({
                         defaultValue={
                           info?.expected_dropoff_time?.slice(0, 5) ?? ""
                         }
-                        className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+                        className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
                       />
                     </label>
                   </div>
@@ -218,10 +288,13 @@ export default async function AlunoDossiePage({
         </details>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <span className="font-heading text-sm font-semibold text-navy">
-          Responsáveis
-        </span>
+      {/* Responsáveis */}
+      <div className="flex flex-col gap-3 rounded-card bg-surface p-5 shadow-card">
+        <SectionHeader
+          icon={<UsersIcon size={18} />}
+          title="Responsáveis"
+          description="Quem recebe notificações e acompanha o aluno pelo app"
+        />
 
         {(!guardianLinks || guardianLinks.length === 0) && (
           <p className="text-sm text-muted">
@@ -229,49 +302,114 @@ export default async function AlunoDossiePage({
           </p>
         )}
 
-        {guardianLinks?.map((link) => {
-          // Supabase infra a relação como array no tipo (sem gerar tipos
-          // do schema), mas em runtime é sempre um objeto único, já que
-          // student_guardians.guardian_id aponta pra um único guardian.
-          const guardian = link.guardians as unknown as GuardianRow | null;
-          if (!guardian) return null;
-          const isClaimed = Boolean(guardian.user_id);
+        <div className="flex flex-col gap-2">
+          {guardianLinks?.map((link) => {
+            // Supabase infra a relação como array no tipo (sem gerar tipos
+            // do schema), mas em runtime é sempre um objeto único, já que
+            // student_guardians.guardian_id aponta pra um único guardian.
+            const guardian = link.guardians as unknown as GuardianRow | null;
+            if (!guardian) return null;
+            const isClaimed = Boolean(guardian.user_id);
 
-          return (
-            <div
-              key={guardian.id}
-              className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card"
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col">
-                  <span className="font-medium text-navy">
-                    {guardian.full_name}
-                  </span>
-                  <span className="text-sm text-muted">
-                    {link.relationship || "Responsável"}
-                    {guardian.phone ? ` · ${guardian.phone}` : ""}
-                  </span>
+            return (
+              <div
+                key={guardian.id}
+                className="flex flex-col gap-2 rounded-input bg-bg p-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="font-medium text-navy">
+                      {guardian.full_name}
+                    </span>
+                    <span className="text-sm text-muted">
+                      {link.relationship || "Responsável"}
+                      {guardian.phone ? ` · ${guardian.phone}` : ""}
+                    </span>
+                  </div>
+                  {isClaimed ? (
+                    <span className="rounded-pill bg-sage px-3 py-1 text-xs font-semibold text-mint">
+                      Vinculado
+                    </span>
+                  ) : (
+                    <span className="rounded-pill bg-amber/10 px-3 py-1 text-xs font-semibold text-amber">
+                      Pendente
+                    </span>
+                  )}
                 </div>
-                {isClaimed ? (
-                  <span className="rounded-pill bg-sage px-3 py-1 text-xs font-semibold text-mint">
-                    Vinculado
-                  </span>
-                ) : (
-                  <span className="rounded-pill bg-amber/10 px-3 py-1 text-xs font-semibold text-amber">
-                    Pendente
-                  </span>
+                {!isClaimed && (
+                  <>
+                    <span className="text-xs text-muted">
+                      Ainda não criou conta — envie o link pra ele se
+                      cadastrar e acompanhar o aluno
+                    </span>
+                    <CopyInviteLink token={guardian.invite_token} />
+                  </>
                 )}
               </div>
-              {!isClaimed && <CopyInviteLink token={guardian.invite_token} />}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        <details className="mt-1">
+          <summary className="cursor-pointer text-sm font-medium text-blue">
+            + Adicionar responsável
+          </summary>
+          <form
+            action={addGuardianAction}
+            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
+          >
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Nome completo
+              <input
+                type="text"
+                name="fullName"
+                required
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Telefone
+              <input
+                type="tel"
+                name="phone"
+                placeholder="(31) 99999-0000"
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Parentesco
+              <input
+                type="text"
+                name="relationship"
+                placeholder="Mãe, Pai, Avó..."
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text">
+              <input type="checkbox" name="isPrimaryContact" />
+              Contato principal
+            </label>
+            <label className="flex items-center gap-2 text-sm text-text">
+              <input type="checkbox" name="canPickUp" />
+              Autorizado a buscar a criança
+            </label>
+            <button
+              type="submit"
+              className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
+            >
+              Adicionar responsável
+            </button>
+          </form>
+        </details>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <span className="font-heading text-sm font-semibold text-navy">
-          Ocorrências
-        </span>
+      {/* Ocorrências */}
+      <div className="flex flex-col gap-3 rounded-card bg-surface p-5 shadow-card">
+        <SectionHeader
+          icon={<AlertIcon size={18} />}
+          title="Ocorrências"
+          description="Saúde, comportamento ou avisos importantes sobre o aluno"
+        />
 
         {(!incidents || incidents.length === 0) && (
           <p className="text-sm text-muted">
@@ -279,112 +417,64 @@ export default async function AlunoDossiePage({
           </p>
         )}
 
-        {incidents?.map((incident) => (
-          <div
-            key={incident.id}
-            className="flex flex-col gap-1 rounded-card bg-amber/10 p-4"
-          >
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-navy">{incident.title}</span>
-              <span className="text-xs text-muted">
-                {new Date(incident.created_at).toLocaleDateString("pt-BR")}
-              </span>
+        <div className="flex flex-col gap-2">
+          {incidents?.map((incident) => (
+            <div
+              key={incident.id}
+              className="flex flex-col gap-1 rounded-input bg-amber/10 p-3"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-navy">
+                  {incident.title}
+                </span>
+                <span className="text-xs text-muted">
+                  {new Date(incident.created_at).toLocaleDateString("pt-BR")}
+                </span>
+              </div>
+              {incident.description && (
+                <span className="text-sm text-text">
+                  {incident.description}
+                </span>
+              )}
             </div>
-            {incident.description && (
-              <span className="text-sm text-text">
-                {incident.description}
-              </span>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <details className="mt-1">
+          <summary className="cursor-pointer text-sm font-medium text-blue">
+            + Registrar ocorrência
+          </summary>
+          <form
+            action={createIncidentAction}
+            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
+          >
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Título
+              <input
+                type="text"
+                name="title"
+                required
+                placeholder="Febre leve na saída"
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Detalhes
+              <textarea
+                name="description"
+                rows={3}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+            </label>
+            <button
+              type="submit"
+              className="rounded-pill bg-amber px-6 py-3 font-medium text-white transition hover:opacity-90"
+            >
+              Registrar ocorrência
+            </button>
+          </form>
+        </details>
       </div>
-
-      <details className="rounded-card bg-surface p-4 shadow-card">
-        <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
-          + Registrar ocorrência
-        </summary>
-        <form
-          action={createIncidentAction}
-          className="mt-4 flex flex-col gap-4"
-        >
-          <label className="flex flex-col gap-1 text-sm font-medium text-text">
-            Título
-            <input
-              type="text"
-              name="title"
-              required
-              placeholder="Febre leve na saída"
-              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-text">
-            Detalhes
-            <textarea
-              name="description"
-              rows={3}
-              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-          <button
-            type="submit"
-            className="rounded-pill bg-amber px-6 py-3 font-medium text-white transition hover:opacity-90"
-          >
-            Registrar ocorrência
-          </button>
-        </form>
-      </details>
-
-      <details className="rounded-card bg-surface p-4 shadow-card">
-        <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
-          + Adicionar responsável
-        </summary>
-        <form
-          action={addGuardianAction}
-          className="mt-4 flex flex-col gap-4"
-        >
-          <label className="flex flex-col gap-1 text-sm font-medium text-text">
-            Nome completo
-            <input
-              type="text"
-              name="fullName"
-              required
-              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-text">
-            Telefone
-            <input
-              type="tel"
-              name="phone"
-              placeholder="(31) 99999-0000"
-              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-text">
-            Parentesco
-            <input
-              type="text"
-              name="relationship"
-              placeholder="Mãe, Pai, Avó..."
-              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-          <label className="flex items-center gap-2 text-sm text-text">
-            <input type="checkbox" name="isPrimaryContact" />
-            Contato principal
-          </label>
-          <label className="flex items-center gap-2 text-sm text-text">
-            <input type="checkbox" name="canPickUp" />
-            Autorizado a buscar a criança
-          </label>
-          <button
-            type="submit"
-            className="rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
-          >
-            Adicionar responsável
-          </button>
-        </form>
-      </details>
     </div>
   );
 }
