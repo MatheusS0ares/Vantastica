@@ -44,6 +44,7 @@ export function StudentCheckinCard({
   photoUrl,
   statusBadge,
   stage,
+  ringClassName,
   primaryAction,
   showAusenteButton,
   embarcarAction,
@@ -58,6 +59,9 @@ export function StudentCheckinCard({
   // casa) — só serve pra fechar o modal quando o servidor confirmar o
   // avanço; o conteúdo em si vem de `stage` na página, não daqui.
   stage: string;
+  // Cor da borda do avatar (ex.: "border-amber") — reflete a etapa
+  // atual do aluno na linha do tempo da rota.
+  ringClassName: string;
   primaryAction: PrimaryAction | null;
   showAusenteButton: boolean;
   embarcarAction: CheckinAction;
@@ -87,41 +91,56 @@ export function StudentCheckinCard({
 
   return (
     <>
-      <div className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-card">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="font-medium text-navy">{studentName}</span>
-            {pickupAddress && (
-              <span className="text-sm text-muted">{pickupAddress}</span>
-            )}
-          </div>
-          {statusBadge}
+      <div className="flex flex-1 gap-3">
+        <div
+          className={`relative z-10 h-11 w-11 shrink-0 overflow-hidden rounded-pill border-2 bg-blue/10 ${ringClassName}`}
+        >
+          {photoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={photoUrl}
+              alt={studentName}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center font-heading text-sm font-semibold text-blue">
+              {initials(studentName)}
+            </div>
+          )}
         </div>
 
-        {(primaryAction || showAusenteButton) && (
-          <div className="flex gap-3">
-            {primaryAction && (
-              <button
-                type="button"
-                onClick={() => setConfirming("primary")}
-                className={`flex-1 rounded-pill px-4 py-3 font-medium text-white transition hover:opacity-90 ${
-                  primaryAction.kind === "embarque" ? "bg-mint" : "bg-navy"
-                }`}
-              >
-                {primaryAction.label}
-              </button>
-            )}
-            {showAusenteButton && (
-              <button
-                type="button"
-                onClick={() => setConfirming("ausente")}
-                className="flex-1 rounded-pill border border-coral px-4 py-3 font-medium text-coral transition hover:opacity-90"
-              >
-                Ausente
-              </button>
-            )}
-          </div>
-        )}
+        <div className="flex flex-1 flex-col gap-1 pt-0.5">
+          <span className="font-medium text-navy">{studentName}</span>
+          {pickupAddress && (
+            <span className="text-xs text-muted">{pickupAddress}</span>
+          )}
+          {statusBadge}
+
+          {(primaryAction || showAusenteButton) && (
+            <div className="mt-1 flex gap-2">
+              {primaryAction && (
+                <button
+                  type="button"
+                  onClick={() => setConfirming("primary")}
+                  className={`rounded-pill px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90 ${
+                    primaryAction.kind === "embarque" ? "bg-mint" : "bg-navy"
+                  }`}
+                >
+                  {primaryAction.label}
+                </button>
+              )}
+              {showAusenteButton && (
+                <button
+                  type="button"
+                  onClick={() => setConfirming("ausente")}
+                  className="rounded-pill border border-coral px-3 py-1.5 text-xs font-semibold text-coral transition hover:opacity-90"
+                >
+                  Ausente
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {confirming && (

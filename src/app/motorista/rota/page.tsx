@@ -38,6 +38,15 @@ const STAGE_BADGE: Record<
   ausente: { label: "Ausente", className: "bg-coral/10 text-coral" },
 };
 
+const STAGE_RING: Record<Stage, string> = {
+  aguardando_ida: "border-border",
+  a_caminho_escola: "border-amber",
+  aguardando_volta: "border-blue",
+  a_caminho_casa: "border-amber",
+  concluido: "border-mint",
+  ausente: "border-coral",
+};
+
 const STAGE_PRIMARY: Record<Stage, PrimaryAction | null> = {
   aguardando_ida: {
     kind: "embarque",
@@ -156,6 +165,13 @@ export default async function RotaPage({
     ),
   );
 
+  const stagesByStudent = new Map(
+    students.map((s) => [s.id, stageFor(eventsByStudent.get(s.id) ?? [])]),
+  );
+  const doneCount = [...stagesByStudent.values()].filter(
+    (stage) => stage === "concluido" || stage === "ausente",
+  ).length;
+
   return (
     <div className="flex flex-1 flex-col gap-4 px-5 py-6">
       <div className="flex items-center justify-between">
@@ -201,56 +217,77 @@ export default async function RotaPage({
         </p>
       )}
 
-      <div className="flex flex-col gap-3">
-        {students.map((student) => {
-          const events = eventsByStudent.get(student.id) ?? [];
-          const stage = stageFor(events);
-          const badge = STAGE_BADGE[stage];
-          const lastTime = events[events.length - 1]?.time;
+      {students.length > 0 && (
+        <div className="flex flex-col gap-4 rounded-card bg-surface p-5 shadow-card">
+          <div className="flex items-center justify-between">
+            <span className="font-heading text-sm font-semibold text-navy">
+              {SHIFT_LABEL[selectedShift]}
+            </span>
+            <span className="text-xs font-medium text-muted">
+              {doneCount} de {students.length} concluídos
+            </span>
+          </div>
 
-          return (
-            <StudentCheckinCard
-              key={student.id}
-              studentName={student.full_name}
-              pickupAddress={student.pickup_address}
-              photoUrl={photoUrls.get(student.id) ?? null}
-              statusBadge={
-                badge ? (
-                  <span
-                    className={`rounded-pill px-3 py-1 text-xs font-semibold ${badge.className}`}
-                  >
-                    {badge.label}
-                    {lastTime ? ` · ${lastTime}` : ""}
-                  </span>
-                ) : null
-              }
-              stage={stage}
-              primaryAction={STAGE_PRIMARY[stage]}
-              showAusenteButton={
-                stage === "aguardando_ida" || stage === "aguardando_volta"
-              }
-              embarcarAction={recordCheckin.bind(
-                null,
-                student.id,
-                selectedShift,
-                "embarque",
-              )}
-              entregarAction={recordCheckin.bind(
-                null,
-                student.id,
-                selectedShift,
-                "entrega",
-              )}
-              ausenteAction={recordCheckin.bind(
-                null,
-                student.id,
-                selectedShift,
-                "ausente",
-              )}
-            />
-          );
-        })}
-      </div>
+          <div className="flex flex-col">
+            {students.map((student, index) => {
+              const events = eventsByStudent.get(student.id) ?? [];
+              const stage = stagesByStudent.get(student.id)!;
+              const badge = STAGE_BADGE[stage];
+              const lastTime = events[events.length - 1]?.time;
+
+              return (
+                <div
+                  key={student.id}
+                  className="relative flex gap-3 pb-5 last:pb-0"
+                >
+                  {index < students.length - 1 && (
+                    <div className="absolute bottom-0 left-[21px] top-11 w-px bg-border" />
+                  )}
+                  <StudentCheckinCard
+                    studentName={student.full_name}
+                    pickupAddress={student.pickup_address}
+                    photoUrl={photoUrls.get(student.id) ?? null}
+                    statusBadge={
+                      badge ? (
+                        <span
+                          className={`w-fit rounded-pill px-2.5 py-0.5 text-xs font-semibold ${badge.className}`}
+                        >
+                          {badge.label}
+                          {lastTime ? ` · ${lastTime}` : ""}
+                        </span>
+                      ) : null
+                    }
+                    stage={stage}
+                    ringClassName={STAGE_RING[stage]}
+                    primaryAction={STAGE_PRIMARY[stage]}
+                    showAusenteButton={
+                      stage === "aguardando_ida" || stage === "aguardando_volta"
+                    }
+                    embarcarAction={recordCheckin.bind(
+                      null,
+                      student.id,
+                      selectedShift,
+                      "embarque",
+                    )}
+                    entregarAction={recordCheckin.bind(
+                      null,
+                      student.id,
+                      selectedShift,
+                      "entrega",
+                    )}
+                    ausenteAction={recordCheckin.bind(
+                      null,
+                      student.id,
+                      selectedShift,
+                      "ausente",
+                    )}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
