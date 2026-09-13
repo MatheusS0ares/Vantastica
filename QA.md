@@ -184,6 +184,26 @@ Um turno é a ida-e-volta inteira, não só um embarque e uma entrega.
       confirmar que dá um leve "aperto" visual assim que toca, antes
       da tela atualizar
 
+## 14. Localização ao vivo (GPS)
+
+Precisa de dois celulares (ou um celular + notebook com GPS/localização
+aproximada) — um como motorista, outro como responsável.
+
+- [ ] Motorista: `/motorista/rota` → tocar **Compartilhar** no card
+      "Localização ao vivo" → o navegador deve pedir permissão de
+      localização → aceitar
+- [ ] Confirma que aparece "Localização sendo enviada" no card
+- [ ] Responsável: abrir `/responsavel` → deve aparecer um mapa com um
+      pino na posição do motorista, atualizando a cada ~12s
+- [ ] Mover o celular do motorista (ou simular outra localização) →
+      conferir que o pino se move no mapa do responsável em menos de
+      1 minuto
+- [ ] Motorista: tocar **Parar** → depois de 5 minutos sem atualização,
+      o mapa do responsável deve voltar a mostrar "Sem localização em
+      tempo real no momento"
+- [ ] Confirmar que um responsável de **outra organização** não vê
+      esse mapa nem essa localização (isolamento entre organizações)
+
 ---
 
 Qualquer passo que falhar, me manda: em qual etapa, o que esperava

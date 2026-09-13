@@ -4,7 +4,11 @@ import { getUserContext } from "@/lib/supabase/user-context";
 import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
-import { updateStudentPhotoAsGuardian } from "./actions";
+import { LiveMap } from "@/components/LiveMap";
+import {
+  getVehicleLocationForResponsavel,
+  updateStudentPhotoAsGuardian,
+} from "./actions";
 
 type StatusInfo = {
   label: string;
@@ -33,14 +37,23 @@ export default async function ResponsavelStatusPage() {
 
   const { data: links } = await supabase
     .from("student_guardians")
-    .select("students(id, full_name, photo_url)")
+    .select("students(id, full_name, photo_url, organization_id)")
     .eq("guardian_id", context.guardianId);
 
-  type StudentRow = { id: string; full_name: string; photo_url: string | null };
+  type StudentRow = {
+    id: string;
+    full_name: string;
+    photo_url: string | null;
+    organization_id: string;
+  };
 
   const students = (links ?? [])
     .map((link) => link.students as unknown as StudentRow | null)
     .filter((s): s is StudentRow => Boolean(s));
+
+  const organizationIds = Array.from(
+    new Set(students.map((s) => s.organization_id)),
+  );
 
   const photoUrls = new Map(
     await Promise.all(
@@ -83,6 +96,14 @@ export default async function ResponsavelStatusPage() {
           Nenhum aluno vinculado à sua conta ainda.
         </p>
       )}
+
+      {organizationIds.map((organizationId) => (
+        <LiveMap
+          key={organizationId}
+          organizationId={organizationId}
+          getLocation={getVehicleLocationForResponsavel}
+        />
+      ))}
 
       <div className="flex flex-col gap-3">
         {students.map((student) => {

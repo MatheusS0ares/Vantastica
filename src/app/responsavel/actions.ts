@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { uploadStudentPhoto, deleteStudentPhoto } from "@/lib/supabase/storage";
+import { getVehicleLocation, type VehicleLocation } from "@/lib/supabase/location";
 
 export async function updateStudentPhotoAsGuardian(
   studentId: string,
@@ -60,4 +61,19 @@ export async function updateStudentPhotoAsGuardian(
   await deleteStudentPhoto(supabase, student.photo_url);
 
   revalidatePath("/responsavel");
+}
+
+/**
+ * Chamada repetidamente pelo mapa ao vivo (polling no cliente) — a RLS
+ * de vehicle_locations já garante que só volta algo se o responsável
+ * for mesmo vinculado a um aluno dessa organização.
+ */
+export async function getVehicleLocationForResponsavel(
+  organizationId: string,
+): Promise<VehicleLocation | null> {
+  const context = await getUserContext();
+  if (context.role !== "responsavel") return null;
+
+  const supabase = await createClient();
+  return getVehicleLocation(supabase, organizationId);
 }

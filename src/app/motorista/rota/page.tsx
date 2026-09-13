@@ -6,6 +6,7 @@ import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 import { SHIFTS, SHIFT_LABEL, currentShift, isShift } from "@/lib/shifts";
 import { StudentCheckinCard, type PrimaryAction } from "@/components/StudentCheckinCard";
+import { ShareLocationToggle } from "@/components/ShareLocationToggle";
 import { recordCheckin } from "./actions";
 
 // Um turno é a ida-e-volta inteira de um grupo de alunos (ex.: matutino
@@ -198,6 +199,8 @@ export default async function RotaPage({
           </Link>
         ))}
       </div>
+
+      <ShareLocationToggle />
 
       {error && (
         <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">

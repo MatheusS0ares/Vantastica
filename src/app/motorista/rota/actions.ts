@@ -70,3 +70,28 @@ export async function recordCheckin(
 
   revalidatePath("/motorista/rota");
 }
+
+/**
+ * Chamada repetidamente pelo navegador do motorista (via
+ * navigator.geolocation.watchPosition) enquanto ele compartilha
+ * localização — nunca redireciona em caso de erro, já que isso
+ * quebraria a chamada silenciosa feita em segundo plano pelo cliente.
+ */
+export async function updateVehicleLocation(
+  latitude: number,
+  longitude: number,
+) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") return;
+
+  const supabase = await createClient();
+  await supabase.from("vehicle_locations").upsert(
+    {
+      organization_id: context.organizationId,
+      latitude,
+      longitude,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "organization_id" },
+  );
+}
