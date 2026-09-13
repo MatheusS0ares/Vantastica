@@ -192,7 +192,10 @@ export default async function RotaPage({
       {students.length === 0 && (
         <p className="mt-6 text-center text-sm text-muted">
           Nenhum aluno configurado para o turno {SHIFT_LABEL[selectedShift]}.{" "}
-          <Link href="/motorista/alunos" className="text-blue">
+          <Link
+            href={`/motorista/alunos/turnos?turno=${selectedShift}`}
+            className="text-blue"
+          >
             Configurar turnos
           </Link>
         </p>

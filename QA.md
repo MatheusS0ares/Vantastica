@@ -41,6 +41,15 @@ normal, só o e-mail não chega (e isso é esperado, não é bug).
       turno **Matutino** (horário de busca e de entrega)
 - [ ] Salvar e confirmar que o card "Turnos" agora mostra o Matutino
       com os horários certos
+- [ ] Cadastrar um segundo aluno sem configurar turno nenhum
+- [ ] `/motorista/rota` na aba de um turno sem ninguém configurado →
+      tocar **Configurar turnos** → deve cair em
+      `/motorista/alunos/turnos` já filtrado nesse turno, listando só
+      quem está sem horário
+- [ ] Preencher busca/entrega de um dos alunos listados e tocar
+      **Salvar horários preenchidos** → deve mostrar confirmação e
+      esse aluno some da lista de pendentes (some da tela, já que
+      ficou configurado)
 - [ ] Abrir "+ Adicionar responsável" → preencher → salvar
 - [ ] O responsável aparece na lista com badge **Pendente**
 - [ ] Clicar em **Copiar link de convite** (deve copiar algo tipo

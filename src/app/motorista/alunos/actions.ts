@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { uploadStudentPhoto, deleteStudentPhoto } from "@/lib/supabase/storage";
-import { SHIFTS } from "@/lib/shifts";
+import { SHIFTS, isShift, type Shift } from "@/lib/shifts";
 
 function readField(formData: FormData, name: string): string {
   return String(formData.get(name) ?? "").trim();
@@ -156,6 +156,51 @@ export async function updateStudentShifts(
   revalidatePath(`/motorista/alunos/${studentId}`);
   revalidatePath(`/motorista/alunos/${studentId}/historico`);
   revalidatePath("/motorista/rota");
+}
+
+export async function bulkUpdateShiftForStudents(
+  shift: Shift,
+  formData: FormData,
+) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  if (!isShift(shift)) redirect("/motorista/alunos/turnos");
+
+  const supabase = await createClient();
+  const studentIds = formData.getAll("studentId").map(String);
+
+  let savedCount = 0;
+  for (const studentId of studentIds) {
+    const pickup = readField(formData, `pickup_${studentId}`) || null;
+    const dropoff = readField(formData, `dropoff_${studentId}`) || null;
+
+    if (!pickup && !dropoff) continue;
+
+    const { error } = await supabase.from("student_shifts").upsert(
+      {
+        student_id: studentId,
+        shift,
+        expected_pickup_time: pickup,
+        expected_dropoff_time: dropoff,
+      },
+      { onConflict: "student_id,shift" },
+    );
+
+    if (!error) savedCount += 1;
+  }
+
+  revalidatePath("/motorista/alunos/turnos");
+  revalidatePath("/motorista/rota");
+
+  const message =
+    savedCount > 0
+      ? `${savedCount} aluno${savedCount === 1 ? "" : "s"} configurado${savedCount === 1 ? "" : "s"} pro turno.`
+      : "Nenhum horário preenchido.";
+
+  redirect(
+    `/motorista/alunos/turnos?turno=${shift}&success=${encodeURIComponent(message)}`,
+  );
 }
 
 export async function createIncident(studentId: string, formData: FormData) {

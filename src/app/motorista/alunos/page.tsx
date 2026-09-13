@@ -26,6 +26,13 @@ export default async function AlunosPage() {
         </Link>
       </div>
 
+      <Link
+        href="/motorista/alunos/turnos"
+        className="text-sm font-medium text-blue"
+      >
+        Configurar turnos em lote →
+      </Link>
+
       {error && (
         <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
           Não foi possível carregar os alunos: {error.message}
