@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
+import { CompressedUploadForm } from "@/components/CompressedUploadForm";
 import {
   createCalendarEvent,
   createOrganizationInvite,
@@ -145,26 +146,11 @@ export default async function PerfilMotoristaPage({
               />
             )}
           </div>
-          <form
+          <CompressedUploadForm
             action={updateOrganizationAsset.bind(null, "logo")}
-            className="flex flex-1 flex-col gap-2"
-          >
-            <span className="text-sm font-medium text-text">
-              Logo da empresa
-            </span>
-            <input
-              type="file"
-              name="logo"
-              accept="image/*"
-              className="text-sm"
-            />
-            <button
-              type="submit"
-              className="w-fit rounded-pill border border-blue px-4 py-1.5 text-xs font-medium text-blue transition hover:opacity-80"
-            >
-              Enviar
-            </button>
-          </form>
+            fieldName="logo"
+            label="Logo da empresa"
+          />
         </div>
 
         <div className="flex items-center gap-4">
@@ -178,26 +164,11 @@ export default async function PerfilMotoristaPage({
               />
             )}
           </div>
-          <form
+          <CompressedUploadForm
             action={updateOrganizationAsset.bind(null, "van")}
-            className="flex flex-1 flex-col gap-2"
-          >
-            <span className="text-sm font-medium text-text">
-              Foto da van
-            </span>
-            <input
-              type="file"
-              name="van"
-              accept="image/*"
-              className="text-sm"
-            />
-            <button
-              type="submit"
-              className="w-fit rounded-pill border border-blue px-4 py-1.5 text-xs font-medium text-blue transition hover:opacity-80"
-            >
-              Enviar
-            </button>
-          </form>
+            fieldName="van"
+            label="Foto da van"
+          />
         </div>
       </div>
 
