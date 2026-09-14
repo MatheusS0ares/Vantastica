@@ -49,6 +49,39 @@ const BENTO_FEATURES = [
   },
 ];
 
+const FAQS = [
+  {
+    question: "Preciso pagar pra usar?",
+    answer:
+      "Por enquanto, o cadastro é gratuito. O dinheiro das mensalidades vai direto dos pais pra sua chave Pix, sem intermediário — a VanTástica não fica com nenhuma parte disso.",
+  },
+  {
+    question: "Funciona pra quem tem mais de uma van (frota)?",
+    answer:
+      "Sim. Hoje cada van tem sua própria conta, com seus motoristas e alunos organizados separadamente — se você tem uma frota, é só criar uma conta pra cada van. Estamos trabalhando pra unificar isso num painel só em breve.",
+  },
+  {
+    question: "Os responsáveis precisam baixar um app na loja?",
+    answer:
+      "Não. O app abre direto do navegador e pode ser adicionado à tela de início do celular em um toque, sem passar pela App Store ou Play Store.",
+  },
+  {
+    question: "Como funciona a localização em tempo real?",
+    answer:
+      "O motorista ativa o compartilhamento na tela da rota do dia, e os responsáveis acompanham a van num mapa enquanto ela estiver a caminho.",
+  },
+  {
+    question: "Os dados dos alunos ficam seguros?",
+    answer:
+      "Sim. Cada van só enxerga seus próprios alunos e responsáveis — os dados de organizações diferentes ficam completamente isolados entre si.",
+  },
+  {
+    question: "Posso ter mais de um motorista na mesma van?",
+    answer:
+      "Pode sim, sem custo extra. Convide quantos motoristas quiser pra dividir a rota — todos veem os mesmos alunos e a mesma agenda.",
+  },
+];
+
 const STEPS = [
   {
     title: "Cadastre sua van",
@@ -82,6 +115,12 @@ export default function Home() {
             </span>
           </div>
           <div className="flex items-center gap-4">
+            <Link
+              href="#faq"
+              className="hidden text-sm font-medium text-white/80 transition hover:text-white sm:block"
+            >
+              FAQ
+            </Link>
             <Link
               href="/login"
               className="hidden text-sm font-medium text-white/80 transition hover:text-white sm:block"
@@ -196,7 +235,7 @@ export default function Home() {
             Tudo em um só app
           </span>
           <h2 className="font-heading text-2xl font-bold text-navy sm:text-3xl">
-            Feito pra quem dirige uma van, não uma frota
+            De uma van só até uma frota inteira
           </h2>
         </div>
 
@@ -216,6 +255,37 @@ export default function Home() {
                 </span>
                 <span className="text-sm text-muted">{description}</span>
               </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="faq" className="scroll-mt-16 px-6 py-16">
+        <div className="animate-fade-in-up mx-auto mb-10 flex max-w-2xl flex-col items-center gap-2 text-center">
+          <span className="text-sm font-semibold uppercase tracking-wide text-blue">
+            Perguntas frequentes
+          </span>
+          <h2 className="font-heading text-2xl font-bold text-navy sm:text-3xl">
+            Ainda com dúvidas?
+          </h2>
+        </div>
+
+        <div className="mx-auto flex max-w-2xl flex-col gap-3">
+          {FAQS.map((faq, index) => (
+            <div
+              key={faq.question}
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${index * 60}ms` }}
+            >
+              <details className="group rounded-card bg-surface px-5 py-4 shadow-card">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-heading font-semibold text-navy">
+                  {faq.question}
+                  <span className="shrink-0 text-blue transition group-open:rotate-180">
+                    ▾
+                  </span>
+                </summary>
+                <p className="mt-3 text-sm text-muted">{faq.answer}</p>
+              </details>
             </div>
           ))}
         </div>
