@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker } from "leaflet";
 import type { VehicleLocation } from "@/lib/supabase/location";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const POLL_INTERVAL_MS = 12000;
 const STALE_AFTER_MS = 5 * 60 * 1000;
@@ -30,6 +31,11 @@ export function LiveMap({
   // Calculado dentro do polling (efeito), não durante o render — Date.now()
   // é impuro e o React proíbe chamar isso direto no corpo do componente.
   const [isStale, setIsStale] = useState(false);
+  // Distingue "ainda não sabemos" (skeleton) de "confirmado que não tem
+  // localização" (mensagem) — sem isso a mensagem de "sem localização"
+  // pisca na tela por um instante toda vez que o componente monta, antes
+  // mesmo da primeira consulta terminar.
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,6 +48,7 @@ export function LiveMap({
         loc !== null &&
           Date.now() - new Date(loc.updatedAt).getTime() > STALE_AFTER_MS,
       );
+      setLoading(false);
     }
 
     poll();
@@ -108,6 +115,10 @@ export function LiveMap({
       markerRef.current = null;
     };
   }, []);
+
+  if (loading) {
+    return <Skeleton className="h-48 w-full rounded-card" />;
+  }
 
   if (!location || isStale) {
     return (
