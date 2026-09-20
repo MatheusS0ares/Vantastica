@@ -2,6 +2,19 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
 
 type CheckinAction = (formData: FormData) => void;
 
@@ -71,6 +84,10 @@ export function StudentCheckinCard({
   const [confirming, setConfirming] = useState<"primary" | "ausente" | null>(
     null,
   );
+  // sm: no Tailwind — abaixo disso é folha que sobe de baixo (mais fácil
+  // de alcançar com o polegar), acima disso é um modal centralizado
+  // (mais natural com mouse).
+  const isDesktop = useMediaQuery("(min-width: 640px)");
 
   // Fecha o modal só quando o servidor de fato confirmar a mudança de
   // etapa (essa prop só muda depois que a Server Action + revalidatePath
@@ -143,68 +160,122 @@ export function StudentCheckinCard({
         </div>
       </div>
 
-      {confirming && (
-        <div className="fixed inset-0 z-30 flex items-end justify-center bg-navy/40 px-4 pb-6 sm:items-center">
-          <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-card bg-surface p-6 shadow-card">
-            <div className="h-24 w-24 overflow-hidden rounded-pill bg-blue/10">
-              {photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={photoUrl}
-                  alt={studentName}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-blue">
-                  {initials(studentName)}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col items-center gap-1 text-center">
-              <span className="font-heading text-lg font-bold text-navy">
-                {studentName}
-              </span>
-              <span className="text-sm text-muted">
-                {confirming === "ausente"
-                  ? "Marcar como ausente"
-                  : primaryAction?.confirmTitle}
-              </span>
-            </div>
-
-            <form
-              action={
-                confirming === "ausente" ? ausenteAction : primaryFormAction
-              }
-              className="flex w-full flex-col gap-3"
-            >
-              <label className="flex flex-col gap-1 text-left text-sm text-text">
-                Alguma ocorrência? (opcional)
-                <textarea
-                  name="occurrence"
-                  rows={2}
-                  placeholder="Ex.: esqueceu a mochila, chegou chorando..."
-                  className="rounded-input border border-border bg-bg px-3 py-2 text-sm outline-none focus:border-blue"
-                />
-              </label>
-              <ConfirmSubmitButton
-                label={
-                  confirming === "ausente"
-                    ? "Confirmar ausência"
-                    : (primaryAction?.confirmButton ?? "Confirmar")
-                }
-              />
-            </form>
-            <button
-              type="button"
-              onClick={() => setConfirming(null)}
-              className="text-sm text-muted"
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
+      {isDesktop ? (
+        <Dialog
+          open={confirming !== null}
+          onOpenChange={(open) => !open && setConfirming(null)}
+        >
+          <DialogContent>
+            <ConfirmModalBody
+              studentName={studentName}
+              photoUrl={photoUrl}
+              confirming={confirming}
+              primaryAction={primaryAction}
+              primaryFormAction={primaryFormAction}
+              ausenteAction={ausenteAction}
+              onCancel={() => setConfirming(null)}
+              TitleComponent={DialogTitle}
+              DescriptionComponent={DialogDescription}
+            />
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Drawer
+          open={confirming !== null}
+          onOpenChange={(open) => !open && setConfirming(null)}
+        >
+          <DrawerContent>
+            <ConfirmModalBody
+              studentName={studentName}
+              photoUrl={photoUrl}
+              confirming={confirming}
+              primaryAction={primaryAction}
+              primaryFormAction={primaryFormAction}
+              ausenteAction={ausenteAction}
+              onCancel={() => setConfirming(null)}
+              TitleComponent={DrawerTitle}
+              DescriptionComponent={DrawerDescription}
+            />
+          </DrawerContent>
+        </Drawer>
       )}
     </>
+  );
+}
+
+function ConfirmModalBody({
+  studentName,
+  photoUrl,
+  confirming,
+  primaryAction,
+  primaryFormAction,
+  ausenteAction,
+  onCancel,
+  TitleComponent: Title,
+  DescriptionComponent: Description,
+}: {
+  studentName: string;
+  photoUrl: string | null;
+  confirming: "primary" | "ausente" | null;
+  primaryAction: PrimaryAction | null;
+  primaryFormAction: CheckinAction;
+  ausenteAction: CheckinAction;
+  onCancel: () => void;
+  TitleComponent: typeof DialogTitle;
+  DescriptionComponent: typeof DialogDescription;
+}) {
+  return (
+    <div className="flex w-full flex-col items-center gap-4">
+      <div className="h-24 w-24 overflow-hidden rounded-pill bg-blue/10">
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={photoUrl}
+            alt={studentName}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center font-heading text-2xl font-semibold text-blue">
+            {initials(studentName)}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col items-center gap-1 text-center">
+        <Title className="font-heading text-lg font-bold text-navy">
+          {studentName}
+        </Title>
+        <Description className="text-sm text-muted">
+          {confirming === "ausente"
+            ? "Marcar como ausente"
+            : primaryAction?.confirmTitle}
+        </Description>
+      </div>
+
+      <form
+        action={confirming === "ausente" ? ausenteAction : primaryFormAction}
+        className="flex w-full flex-col gap-3"
+      >
+        <label className="flex flex-col gap-1 text-left text-sm text-text">
+          Alguma ocorrência? (opcional)
+          <textarea
+            name="occurrence"
+            rows={2}
+            placeholder="Ex.: esqueceu a mochila, chegou chorando..."
+            className="rounded-input border border-border bg-bg px-3 py-2 text-sm outline-none focus:border-blue"
+          />
+        </label>
+        <ConfirmSubmitButton
+          label={
+            confirming === "ausente"
+              ? "Confirmar ausência"
+              : (primaryAction?.confirmButton ?? "Confirmar")
+          }
+        />
+      </form>
+      <button type="button" onClick={onCancel} className="text-sm text-muted">
+        Cancelar
+      </button>
+    </div>
   );
 }
