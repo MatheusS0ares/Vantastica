@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { CompressedUploadForm } from "@/components/CompressedUploadForm";
+import { ToastFromParams } from "@/components/ToastFromParams";
 import {
   createCalendarEvent,
   createOrganizationInvite,
@@ -18,13 +19,10 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
   sem_transporte: "Sem transporte",
 };
 
-export default async function PerfilMotoristaPage({
-  searchParams,
-}: PageProps<"/motorista/perfil">) {
+export default async function PerfilMotoristaPage() {
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
 
-  const { error } = await searchParams;
   const supabase = await createClient();
 
   const [{ data: org }, { data: events }, { count: memberCount }, { data: invites }] =
@@ -55,13 +53,8 @@ export default async function PerfilMotoristaPage({
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
+      <ToastFromParams />
       <h1 className="font-heading text-xl font-bold text-navy">Perfil</h1>
-
-      {error && (
-        <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-          {error}
-        </p>
-      )}
 
       <div className="flex flex-col gap-3 rounded-card bg-surface p-4 shadow-card">
         <span className="font-heading text-sm font-semibold text-navy">

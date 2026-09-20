@@ -1,17 +1,17 @@
 import { signInResponsavel, signUpResponsavel } from "@/app/(auth)/actions";
+import { ToastFromParams } from "@/components/ToastFromParams";
 
 export default async function ConvitePage({
   params,
-  searchParams,
 }: PageProps<"/convite/[token]">) {
   const { token } = await params;
-  const { error } = await searchParams;
 
   const signUpAction = signUpResponsavel.bind(null, token);
   const signInAction = signInResponsavel.bind(null, token);
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      <ToastFromParams />
       <div className="w-full max-w-sm rounded-card bg-surface p-6 shadow-card">
         <h1 className="font-heading text-xl font-bold text-navy">
           Você foi convidado pro VanTástica
@@ -19,12 +19,6 @@ export default async function ConvitePage({
         <p className="mt-1 text-sm text-muted">
           Crie sua conta pra acompanhar seu filho em tempo real.
         </p>
-
-        {error && (
-          <p className="mt-4 rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-            {error}
-          </p>
-        )}
 
         <form action={signUpAction} className="mt-6 flex flex-col gap-4">
           <span className="text-sm font-semibold text-navy">

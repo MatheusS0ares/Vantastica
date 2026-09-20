@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
+import { ToastFromParams } from "@/components/ToastFromParams";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import {
   AlertIcon,
@@ -68,13 +69,11 @@ function SectionHeader({
 
 export default async function AlunoDossiePage({
   params,
-  searchParams,
 }: PageProps<"/motorista/alunos/[id]">) {
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
 
   const { id } = await params;
-  const { error } = await searchParams;
 
   const supabase = await createClient();
 
@@ -131,11 +130,7 @@ export default async function AlunoDossiePage({
         ← Alunos
       </Link>
 
-      {error && (
-        <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-          {error}
-        </p>
-      )}
+      <ToastFromParams />
 
       {/* Hero: foto grande em destaque + identificação do aluno */}
       <div className="flex flex-col items-center gap-3 rounded-card bg-surface p-6 text-center shadow-card">

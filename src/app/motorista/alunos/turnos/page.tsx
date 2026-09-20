@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { SHIFTS, SHIFT_LABEL, isShift, currentShift } from "@/lib/shifts";
+import { ToastFromParams } from "@/components/ToastFromParams";
 import { bulkUpdateShiftForStudents } from "../actions";
 
 type StudentRow = {
@@ -20,7 +21,7 @@ export default async function ConfigurarTurnosPage({
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
 
-  const { turno, error, success } = await searchParams;
+  const { turno } = await searchParams;
   const selectedShift =
     typeof turno === "string" && isShift(turno) ? turno : currentShift();
 
@@ -53,6 +54,7 @@ export default async function ConfigurarTurnosPage({
 
   return (
     <div className="flex flex-1 flex-col gap-4 px-5 py-6">
+      <ToastFromParams />
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-xl font-bold text-navy">
           Configurar turnos
@@ -78,16 +80,6 @@ export default async function ConfigurarTurnosPage({
         ))}
       </div>
 
-      {error && (
-        <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-          {error}
-        </p>
-      )}
-      {success && (
-        <p className="rounded-input bg-sage px-3 py-2 text-sm text-mint">
-          {success}
-        </p>
-      )}
 
       {students.length === 0 && (
         <p className="mt-6 text-center text-sm text-muted">

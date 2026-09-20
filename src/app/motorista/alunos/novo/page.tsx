@@ -1,14 +1,12 @@
 import Link from "next/link";
 import { PhotoField } from "@/components/PhotoField";
+import { ToastFromParams } from "@/components/ToastFromParams";
 import { createStudent } from "../actions";
 
-export default async function NovoAlunoPage({
-  searchParams,
-}: PageProps<"/motorista/alunos/novo">) {
-  const { error } = await searchParams;
-
+export default function NovoAlunoPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 px-5 py-6">
+      <ToastFromParams />
       <div className="flex items-center gap-3">
         <Link href="/motorista/alunos" className="text-sm text-muted">
           ← Alunos
@@ -16,12 +14,6 @@ export default async function NovoAlunoPage({
       </div>
 
       <h1 className="font-heading text-xl font-bold text-navy">Novo Aluno</h1>
-
-      {error && (
-        <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-          {error}
-        </p>
-      )}
 
       <form action={createStudent} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm font-medium text-text">

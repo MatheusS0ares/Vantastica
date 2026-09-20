@@ -7,6 +7,7 @@ import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 import { SHIFTS, SHIFT_LABEL, currentShift, isShift } from "@/lib/shifts";
 import { StudentCheckinCard, type PrimaryAction } from "@/components/StudentCheckinCard";
 import { ShareLocationToggle } from "@/components/ShareLocationToggle";
+import { ToastFromParams } from "@/components/ToastFromParams";
 import { recordCheckin, moveStudentInShift } from "./actions";
 
 // Um turno é a ida-e-volta inteira de um grupo de alunos (ex.: matutino
@@ -111,7 +112,7 @@ export default async function RotaPage({
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
 
-  const { error, turno } = await searchParams;
+  const { turno } = await searchParams;
   const selectedShift =
     typeof turno === "string" && isShift(turno) ? turno : currentShift();
 
@@ -185,6 +186,7 @@ export default async function RotaPage({
 
   return (
     <div className="flex flex-1 flex-col gap-4 px-5 py-6">
+      <ToastFromParams />
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-xl font-bold text-navy">
           Rota de Hoje
@@ -211,12 +213,6 @@ export default async function RotaPage({
       </div>
 
       <ShareLocationToggle />
-
-      {error && (
-        <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-          {error}
-        </p>
-      )}
 
       {students.length === 0 && (
         <p className="mt-6 text-center text-sm text-muted">

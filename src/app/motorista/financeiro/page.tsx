@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { formatCentsAsBRL } from "@/lib/currency";
+import { ToastFromParams } from "@/components/ToastFromParams";
 import {
   createBulkInvoices,
   createInvoice,
@@ -30,13 +31,10 @@ type InvoiceRow = {
   students: { full_name: string } | null;
 };
 
-export default async function FinanceiroMotoristaPage({
-  searchParams,
-}: PageProps<"/motorista/financeiro">) {
+export default async function FinanceiroMotoristaPage() {
   const context = await getUserContext();
   if (context.role !== "motorista") redirect("/login");
 
-  const { error } = await searchParams;
   const supabase = await createClient();
 
   const { data: students } = await supabase
@@ -64,13 +62,8 @@ export default async function FinanceiroMotoristaPage({
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
+      <ToastFromParams />
       <h1 className="font-heading text-xl font-bold text-navy">Financeiro</h1>
-
-      {error && (
-        <p className="rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-          {error}
-        </p>
-      )}
 
       <div className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card">
         <span className="font-heading text-sm font-semibold text-navy">

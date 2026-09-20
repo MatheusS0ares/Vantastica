@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins, Inter } from "next/font/google";
+import { Toaster } from "sonner";
 import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import "./globals.css";
 
@@ -48,6 +49,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-bg text-text font-body">
         {children}
         <RegisterServiceWorker />
+        <Toaster
+          richColors
+          position="top-center"
+          toastOptions={{
+            style: { fontFamily: "var(--font-inter), sans-serif" },
+          }}
+        />
       </body>
     </html>
   );

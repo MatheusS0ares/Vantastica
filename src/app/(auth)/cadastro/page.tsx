@@ -1,13 +1,11 @@
 import Link from "next/link";
+import { ToastFromParams } from "@/components/ToastFromParams";
 import { signUpMotorista } from "../actions";
 
-export default async function CadastroMotoristaPage({
-  searchParams,
-}: PageProps<"/cadastro">) {
-  const { error } = await searchParams;
-
+export default async function CadastroMotoristaPage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
+      <ToastFromParams />
       <div className="w-full max-w-sm rounded-card bg-surface p-6 shadow-card">
         <h1 className="font-heading text-xl font-bold text-navy">
           Criar conta de motorista
@@ -15,12 +13,6 @@ export default async function CadastroMotoristaPage({
         <p className="mt-1 text-sm text-muted">
           Sua organização é criada junto com a conta.
         </p>
-
-        {error && (
-          <p className="mt-4 rounded-input bg-coral/10 px-3 py-2 text-sm text-coral">
-            {error}
-          </p>
-        )}
 
         <form action={signUpMotorista} className="mt-6 flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
