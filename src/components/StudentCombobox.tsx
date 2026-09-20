@@ -47,7 +47,7 @@ export function StudentCombobox({
           <span className="text-muted">⌄</span>
         </button>
       </PopoverTrigger>
-      <PopoverContent className="p-0">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
         <Command>
           <CommandInput placeholder="Buscar aluno..." />
           <CommandList>

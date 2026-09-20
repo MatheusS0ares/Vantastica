@@ -20,7 +20,7 @@ export function PopoverContent({
       <PopoverPrimitive.Content
         align={align}
         sideOffset={6}
-        className={`popover-content z-30 w-[var(--radix-popover-trigger-width)] rounded-input border border-border bg-surface shadow-card outline-none ${className}`}
+        className={`popover-content z-30 rounded-input border border-border bg-surface shadow-card outline-none ${className}`}
       >
         {children}
       </PopoverPrimitive.Content>

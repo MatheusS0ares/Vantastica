@@ -4,6 +4,7 @@ import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { CompressedUploadForm } from "@/components/CompressedUploadForm";
 import { ToastFromParams } from "@/components/ToastFromParams";
+import { DatePickerField } from "@/components/DatePickerField";
 import {
   Select,
   SelectTrigger,
@@ -272,12 +273,7 @@ export default async function PerfilMotoristaPage() {
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
             Data
-            <input
-              type="date"
-              name="eventDate"
-              required
-              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-            />
+            <DatePickerField name="eventDate" required />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
             Tipo

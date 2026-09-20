@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
+@import "react-day-picker/style.css";
 
 :root {
   /* Brand palette — VanTástica Design System */
@@ -127,6 +128,18 @@ input[type="radio"]:active {
   .dialog-content {
     animation: none !important;
   }
+}
+
+/* Calendar (react-day-picker) — recolorido com as variáveis CSS que o
+   próprio pacote expõe, em vez de sobrescrever cada classe interna na
+   unha. */
+.vt-calendar {
+  --rdp-accent-color: var(--color-navy);
+  --rdp-accent-background-color: color-mix(in srgb, var(--color-navy) 12%, white);
+  --rdp-today-color: var(--color-blue);
+  --rdp-day-height: 2.5rem;
+  --rdp-day-width: 2.5rem;
+  --rdp-font-family: var(--font-inter), sans-serif;
 }
 
 /* Popover/Select (Radix) — mesma lógica, sem plugin de animação. */
