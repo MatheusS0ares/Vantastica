@@ -142,6 +142,23 @@ input[type="radio"]:active {
   --rdp-font-family: var(--font-inter), sans-serif;
 }
 
+/* Collapsible (Radix) — anima a altura de verdade usando a variável CSS
+   que o próprio Radix calcula e expõe (evita animar de "0 até auto",
+   que o CSS não sabe interpolar). */
+@keyframes collapsible-down {
+  from { height: 0; }
+  to { height: var(--radix-collapsible-content-height); }
+}
+@keyframes collapsible-up {
+  from { height: var(--radix-collapsible-content-height); }
+  to { height: 0; }
+}
+.collapsible-content[data-state="open"] { animation: collapsible-down 0.2s ease-out; }
+.collapsible-content[data-state="closed"] { animation: collapsible-up 0.2s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .collapsible-content { animation: none !important; }
+}
+
 /* Popover/Select (Radix) — mesma lógica, sem plugin de animação. */
 @keyframes popover-show {
   from { opacity: 0; transform: translateY(-4px); }

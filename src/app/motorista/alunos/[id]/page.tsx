@@ -5,6 +5,11 @@ import { getUserContext } from "@/lib/supabase/user-context";
 import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
 import { ToastFromParams } from "@/components/ToastFromParams";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import {
   AlertIcon,
@@ -186,13 +191,12 @@ export default async function AlunoDossiePage({
           </div>
         )}
 
-        <details className="mt-1">
-          <summary className="cursor-pointer text-sm font-medium text-blue">
-            Editar dados do aluno
-          </summary>
+        <Collapsible className="mt-1">
+          <CollapsibleTrigger>Editar dados do aluno</CollapsibleTrigger>
+          <CollapsibleContent>
           <form
             action={updateInfoAction}
-            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
+            className="flex flex-col gap-4 rounded-input bg-bg p-3"
           >
             <label className="flex flex-col gap-1 text-sm font-medium text-text">
               Nome completo
@@ -257,7 +261,8 @@ export default async function AlunoDossiePage({
               Salvar dados
             </button>
           </form>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
       {/* Turnos */}
@@ -303,13 +308,12 @@ export default async function AlunoDossiePage({
           </div>
         )}
 
-        <details className="group mt-1 rounded-input">
-          <summary className="cursor-pointer text-sm font-medium text-blue">
-            Editar turnos
-          </summary>
+        <Collapsible className="mt-1">
+          <CollapsibleTrigger>Editar turnos</CollapsibleTrigger>
+          <CollapsibleContent>
           <form
             action={updateShiftsAction}
-            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
+            className="flex flex-col gap-4 rounded-input bg-bg p-3"
           >
             <p className="text-xs text-muted">
               Cada turno completo tem 4 etapas registradas automaticamente
@@ -364,12 +368,12 @@ export default async function AlunoDossiePage({
               }
 
               return (
-                <details key={shift} className="rounded-input">
-                  <summary className="cursor-pointer text-sm font-medium text-muted">
-                    + Adicionar {SHIFT_LABEL[shift]} (outro período)
-                  </summary>
-                  <div className="mt-2">{fields}</div>
-                </details>
+                <Collapsible key={shift}>
+                  <CollapsibleTrigger className="text-sm text-muted">
+                    Adicionar {SHIFT_LABEL[shift]} (outro período)
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>{fields}</CollapsibleContent>
+                </Collapsible>
               );
             })}
             <button
@@ -379,7 +383,8 @@ export default async function AlunoDossiePage({
               Salvar turnos
             </button>
           </form>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
       {/* Responsáveis */}
@@ -440,13 +445,14 @@ export default async function AlunoDossiePage({
                   </>
                 )}
 
-                <details>
-                  <summary className="cursor-pointer text-xs font-medium text-blue">
+                <Collapsible>
+                  <CollapsibleTrigger className="text-xs text-blue">
                     Editar
-                  </summary>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
                   <form
                     action={updateGuardian.bind(null, id, guardian.id)}
-                    className="mt-2 flex flex-col gap-3 rounded-input bg-surface p-3"
+                    className="flex flex-col gap-3 rounded-input bg-surface p-3"
                   >
                     <label className="flex flex-col gap-1 text-sm font-medium text-text">
                       Nome completo
@@ -499,19 +505,19 @@ export default async function AlunoDossiePage({
                       Salvar responsável
                     </button>
                   </form>
-                </details>
+                  </CollapsibleContent>
+                </Collapsible>
               </div>
             );
           })}
         </div>
 
-        <details className="mt-1">
-          <summary className="cursor-pointer text-sm font-medium text-blue">
-            + Adicionar responsável
-          </summary>
+        <Collapsible className="mt-1">
+          <CollapsibleTrigger>Adicionar responsável</CollapsibleTrigger>
+          <CollapsibleContent>
           <form
             action={addGuardianAction}
-            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
+            className="flex flex-col gap-4 rounded-input bg-bg p-3"
           >
             <label className="flex flex-col gap-1 text-sm font-medium text-text">
               Nome completo
@@ -555,7 +561,8 @@ export default async function AlunoDossiePage({
               Adicionar responsável
             </button>
           </form>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
 
       {/* Ocorrências */}
@@ -595,13 +602,12 @@ export default async function AlunoDossiePage({
           ))}
         </div>
 
-        <details className="mt-1">
-          <summary className="cursor-pointer text-sm font-medium text-blue">
-            + Registrar ocorrência
-          </summary>
+        <Collapsible className="mt-1">
+          <CollapsibleTrigger>Registrar ocorrência</CollapsibleTrigger>
+          <CollapsibleContent>
           <form
             action={createIncidentAction}
-            className="mt-3 flex flex-col gap-4 rounded-input bg-bg p-3"
+            className="flex flex-col gap-4 rounded-input bg-bg p-3"
           >
             <label className="flex flex-col gap-1 text-sm font-medium text-text">
               Título
@@ -628,7 +634,8 @@ export default async function AlunoDossiePage({
               Registrar ocorrência
             </button>
           </form>
-        </details>
+          </CollapsibleContent>
+        </Collapsible>
       </div>
     </div>
   );

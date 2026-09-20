@@ -6,6 +6,11 @@ import { CompressedUploadForm } from "@/components/CompressedUploadForm";
 import { ToastFromParams } from "@/components/ToastFromParams";
 import { DatePickerField } from "@/components/DatePickerField";
 import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import {
   Select,
   SelectTrigger,
   SelectValue,
@@ -253,13 +258,14 @@ export default async function PerfilMotoristaPage() {
         ))}
       </div>
 
-      <details className="rounded-card bg-surface p-4 shadow-card">
-        <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
-          + Novo evento no calendário
-        </summary>
+      <Collapsible className="rounded-card bg-surface p-4 shadow-card">
+        <CollapsibleTrigger className="font-heading text-sm font-semibold text-navy">
+          Novo evento no calendário
+        </CollapsibleTrigger>
+        <CollapsibleContent>
         <form
           action={createCalendarEvent}
-          className="mt-4 flex flex-col gap-4"
+          className="flex flex-col gap-4"
         >
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
             Título
@@ -296,7 +302,8 @@ export default async function PerfilMotoristaPage() {
             Adicionar evento
           </button>
         </form>
-      </details>
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

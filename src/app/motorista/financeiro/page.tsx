@@ -5,6 +5,11 @@ import { formatCentsAsBRL } from "@/lib/currency";
 import { ToastFromParams } from "@/components/ToastFromParams";
 import { StudentCombobox } from "@/components/StudentCombobox";
 import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/components/ui/collapsible";
+import {
   createBulkInvoices,
   createInvoice,
   markInvoiceAsPaid,
@@ -87,13 +92,14 @@ export default async function FinanceiroMotoristaPage() {
         </form>
       </div>
 
-      <details className="rounded-card bg-surface p-4 shadow-card">
-        <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
-          + Gerar mensalidades do mês (todos os alunos)
-        </summary>
+      <Collapsible className="rounded-card bg-surface p-4 shadow-card">
+        <CollapsibleTrigger className="font-heading text-sm font-semibold text-navy">
+          Gerar mensalidades do mês (todos os alunos)
+        </CollapsibleTrigger>
+        <CollapsibleContent>
         <form
           action={createBulkInvoices}
-          className="mt-4 flex flex-col gap-4"
+          className="flex flex-col gap-4"
         >
           <p className="text-xs text-muted">
             Cria uma mensalidade com o mesmo valor e vencimento pra cada
@@ -137,13 +143,15 @@ export default async function FinanceiroMotoristaPage() {
             Gerar mensalidades
           </button>
         </form>
-      </details>
+        </CollapsibleContent>
+      </Collapsible>
 
-      <details className="rounded-card bg-surface p-4 shadow-card">
-        <summary className="cursor-pointer font-heading text-sm font-semibold text-navy">
-          + Nova mensalidade
-        </summary>
-        <form action={createInvoice} className="mt-4 flex flex-col gap-4">
+      <Collapsible className="rounded-card bg-surface p-4 shadow-card">
+        <CollapsibleTrigger className="font-heading text-sm font-semibold text-navy">
+          Nova mensalidade
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+        <form action={createInvoice} className="flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
             Aluno
             <StudentCombobox students={students ?? []} name="studentId" />
@@ -185,7 +193,8 @@ export default async function FinanceiroMotoristaPage() {
             Criar mensalidade
           </button>
         </form>
-      </details>
+        </CollapsibleContent>
+      </Collapsible>
 
       <div className="flex flex-col gap-3">
         <span className="font-heading text-sm font-semibold text-navy">
