@@ -4,10 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
-import { SHIFTS, SHIFT_LABEL, currentShift, isShift } from "@/lib/shifts";
+import { SHIFT_LABEL, currentShift, isShift } from "@/lib/shifts";
 import { StudentCheckinCard, type PrimaryAction } from "@/components/StudentCheckinCard";
 import { ShareLocationToggle } from "@/components/ShareLocationToggle";
 import { ToastFromParams } from "@/components/ToastFromParams";
+import { ShiftTabs } from "@/components/ShiftTabs";
 import { recordCheckin, moveStudentInShift } from "./actions";
 
 // Um turno é a ida-e-volta inteira de um grupo de alunos (ex.: matutino
@@ -196,21 +197,7 @@ export default async function RotaPage({
         </Link>
       </div>
 
-      <div className="flex gap-2">
-        {SHIFTS.map((shift) => (
-          <Link
-            key={shift}
-            href={`/motorista/rota?turno=${shift}`}
-            className={`flex-1 rounded-pill px-3 py-2 text-center text-sm font-medium transition ${
-              shift === selectedShift
-                ? "bg-navy text-white"
-                : "bg-surface text-muted shadow-card"
-            }`}
-          >
-            {SHIFT_LABEL[shift]}
-          </Link>
-        ))}
-      </div>
+      <ShiftTabs selectedShift={selectedShift} basePath="/motorista/rota" />
 
       <ShareLocationToggle />
 

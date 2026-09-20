@@ -2,8 +2,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
-import { SHIFTS, SHIFT_LABEL, isShift, currentShift } from "@/lib/shifts";
+import { SHIFT_LABEL, isShift, currentShift } from "@/lib/shifts";
 import { ToastFromParams } from "@/components/ToastFromParams";
+import { ShiftTabs } from "@/components/ShiftTabs";
 import { bulkUpdateShiftForStudents } from "../actions";
 
 type StudentRow = {
@@ -64,22 +65,7 @@ export default async function ConfigurarTurnosPage({
         </Link>
       </div>
 
-      <div className="flex gap-2">
-        {SHIFTS.map((shift) => (
-          <Link
-            key={shift}
-            href={`/motorista/alunos/turnos?turno=${shift}`}
-            className={`flex-1 rounded-pill px-3 py-2 text-center text-sm font-medium transition ${
-              shift === selectedShift
-                ? "bg-navy text-white"
-                : "bg-surface text-muted shadow-card"
-            }`}
-          >
-            {SHIFT_LABEL[shift]}
-          </Link>
-        ))}
-      </div>
-
+      <ShiftTabs selectedShift={selectedShift} basePath="/motorista/alunos/turnos" />
 
       {students.length === 0 && (
         <p className="mt-6 text-center text-sm text-muted">
