@@ -9,6 +9,7 @@ import { StudentCheckinCard, type PrimaryAction } from "@/components/StudentChec
 import { ShareLocationToggle } from "@/components/ShareLocationToggle";
 import { ToastFromParams } from "@/components/ToastFromParams";
 import { ShiftTabs } from "@/components/ShiftTabs";
+import { Progress } from "@/components/ui/progress";
 import { recordCheckin, moveStudentInShift } from "./actions";
 
 // Um turno é a ida-e-volta inteira de um grupo de alunos (ex.: matutino
@@ -215,13 +216,16 @@ export default async function RotaPage({
 
       {students.length > 0 && (
         <div className="flex flex-col gap-4 rounded-card bg-surface p-5 shadow-card">
-          <div className="flex items-center justify-between">
-            <span className="font-heading text-sm font-semibold text-navy">
-              {SHIFT_LABEL[selectedShift]}
-            </span>
-            <span className="text-xs font-medium text-muted">
-              {doneCount} de {students.length} concluídos
-            </span>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <span className="font-heading text-sm font-semibold text-navy">
+                {SHIFT_LABEL[selectedShift]}
+              </span>
+              <span className="text-xs font-medium text-muted">
+                {doneCount} de {students.length} concluídos
+              </span>
+            </div>
+            <Progress value={(doneCount / students.length) * 100} />
           </div>
 
           <div className="flex flex-col">
