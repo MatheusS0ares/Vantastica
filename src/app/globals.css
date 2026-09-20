@@ -128,3 +128,13 @@ input[type="radio"]:active {
     animation: none !important;
   }
 }
+
+/* Popover/Select (Radix) — mesma lógica, sem plugin de animação. */
+@keyframes popover-show {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.popover-content[data-state="open"] { animation: popover-show 0.12s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .popover-content { animation: none !important; }
+}

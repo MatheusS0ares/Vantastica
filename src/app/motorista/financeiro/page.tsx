@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { formatCentsAsBRL } from "@/lib/currency";
 import { ToastFromParams } from "@/components/ToastFromParams";
+import { StudentCombobox } from "@/components/StudentCombobox";
 import {
   createBulkInvoices,
   createInvoice,
@@ -145,18 +146,7 @@ export default async function FinanceiroMotoristaPage() {
         <form action={createInvoice} className="mt-4 flex flex-col gap-4">
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
             Aluno
-            <select
-              name="studentId"
-              required
-              className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
-            >
-              <option value="">Selecione...</option>
-              {students?.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.full_name}
-                </option>
-              ))}
-            </select>
+            <StudentCombobox students={students ?? []} name="studentId" />
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
             Mês de referência

@@ -5,6 +5,13 @@ import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { CompressedUploadForm } from "@/components/CompressedUploadForm";
 import { ToastFromParams } from "@/components/ToastFromParams";
 import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
+import {
   createCalendarEvent,
   createOrganizationInvite,
   deleteCalendarEvent,
@@ -274,16 +281,17 @@ export default async function PerfilMotoristaPage() {
           </label>
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
             Tipo
-            <select
-              name="eventType"
-              required
-              className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
-            >
-              <option value="feriado">Feriado</option>
-              <option value="recesso">Recesso</option>
-              <option value="prova">Prova</option>
-              <option value="sem_transporte">Sem transporte</option>
-            </select>
+            <Select name="eventType" defaultValue="feriado">
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="feriado">Feriado</SelectItem>
+                <SelectItem value="recesso">Recesso</SelectItem>
+                <SelectItem value="prova">Prova</SelectItem>
+                <SelectItem value="sem_transporte">Sem transporte</SelectItem>
+              </SelectContent>
+            </Select>
           </label>
           <button
             type="submit"
