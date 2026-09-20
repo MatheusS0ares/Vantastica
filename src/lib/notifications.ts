@@ -3,6 +3,19 @@ import { formatDateInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 
 type CheckinEvent = "embarque" | "entrega" | "ausente";
 
+// studentName e organizationName vêm de texto livre cadastrado pelo
+// motorista — sem escapar, um nome com "<" ou """ quebraria o HTML do
+// e-mail ou, pior, injetaria uma tag/atributo (ex.: um link falso) no
+// que o responsável recebe.
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // Sem domínio verificado no Resend, o remetente é obrigatoriamente
 // onboarding@resend.dev — assim que um domínio próprio for verificado,
 // troca só a env var RESEND_FROM_EMAIL (ex.: "VanTástica <noreply@vantastica.com.br>"),
@@ -60,6 +73,9 @@ export function buildCheckinEmailHtml({
   logoUrl: string;
 }) {
   const copy = EVENT_COPY[eventType];
+  const safeStudentName = escapeHtml(studentName);
+  const safeOrganizationName = escapeHtml(organizationName);
+  const safeLogoUrl = escapeHtml(logoUrl);
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -70,7 +86,7 @@ export function buildCheckinEmailHtml({
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
             <tr>
               <td align="center" style="background-color:#FFFFFF;padding:28px 24px;border-bottom:1px solid #E2E8F0;">
-                <img src="${logoUrl}" alt="${organizationName}" height="44" style="height:44px;max-width:220px;object-fit:contain;" />
+                <img src="${safeLogoUrl}" alt="${safeOrganizationName}" height="44" style="height:44px;max-width:220px;object-fit:contain;" />
               </td>
             </tr>
             <tr>
@@ -82,7 +98,7 @@ export function buildCheckinEmailHtml({
                         ${copy.title}
                       </p>
                       <p style="margin:8px 0 0;color:#2D3748;font-size:17px;line-height:1.5;">
-                        <strong>${studentName}</strong> ${copy.body}
+                        <strong>${safeStudentName}</strong> ${copy.body}
                       </p>
                     </td>
                   </tr>
@@ -110,7 +126,7 @@ export function buildCheckinEmailHtml({
               <td style="padding:20px 28px;background-color:#F7FAFC;border-top:1px solid #E2E8F0;">
                 <p style="margin:0;color:#A0AEC0;font-size:12px;line-height:1.6;">
                   Você recebeu este e-mail porque é responsável por
-                  ${studentName} na ${organizationName}, via VanTástica.
+                  ${safeStudentName} na ${safeOrganizationName}, via VanTástica.
                   Notificação automática — não é preciso responder.
                 </p>
               </td>

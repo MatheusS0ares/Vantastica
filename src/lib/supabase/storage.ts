@@ -3,6 +3,17 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 const BUCKET = "student-photos";
 const SIGNED_URL_TTL_SECONDS = 3600;
 
+// O nome original do arquivo vem do usuário — sem isso, uma extensão
+// forjada (ex.: "jpg/../../x") viraria parte da chave salva no storage.
+// A RLS já isola por organização de qualquer forma (o prefixo antes da
+// primeira "/" continua confiável), mas mesmo assim vale travar isso
+// aqui pra nunca guardar uma chave com caracteres inesperados.
+function safeExtension(fileName: string): string {
+  const raw = fileName.split(".").pop() ?? "";
+  const cleaned = raw.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return cleaned.slice(0, 8) || "jpg";
+}
+
 /**
  * Sobe a foto do aluno pro bucket privado, sob
  * "<organization_id>/<student_id>/...", que é o que a RLS de
@@ -18,7 +29,7 @@ export async function uploadStudentPhoto(
 ): Promise<string | null> {
   if (!file || file.size === 0) return null;
 
-  const extension = file.name.split(".").pop() || "jpg";
+  const extension = safeExtension(file.name);
   const path = `${organizationId}/${studentId}/${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage
@@ -74,7 +85,7 @@ export async function uploadOrgAsset(
 ): Promise<string | null> {
   if (!file || file.size === 0) return null;
 
-  const extension = file.name.split(".").pop() || "jpg";
+  const extension = safeExtension(file.name);
   const path = `${organizationId}/${kind}-${crypto.randomUUID()}.${extension}`;
 
   const { error } = await supabase.storage
