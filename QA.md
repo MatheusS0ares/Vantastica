@@ -18,20 +18,18 @@ roteiro sempre que eu avisar que subi uma mudança grande.
       propósito): no SQL Editor, rodar
       `insert into platform_admins (user_id) select id from auth.users where email = 'SEU_EMAIL_AQUI';`
       trocando pelo e-mail da conta que você já usa pra logar no VanTástica
-- [ ] Confirmar que o deploy mais recente já subiu (vantastica.vercel.app —
+- [ ] Confirmar que o deploy mais recente já subiu (vantastica.com.br —
       olha a data/hora do último deploy no painel da Vercel)
 
-⚠️ **Sobre e-mail**: sua conta Resend ainda não tem domínio verificado.
-Nesse modo, o remetente de teste (`onboarding@resend.dev`) só consegue
-mandar e-mail pro **próprio e-mail da sua conta Resend**
-(`matheusopme@gmail.com`). Pra receber a notificação de check-in
-durante o teste, o **responsável de teste precisa usar esse mesmo
-e-mail** ao criar a conta — com outro e-mail, o check-in funciona
-normal, só o e-mail não chega (e isso é esperado, não é bug).
+⚠️ **Sobre e-mail**: o domínio `vantastica.com.br` já está verificado no
+Resend, então o check-in deve chegar em **qualquer e-mail** de
+responsável de teste (não só no seu). Se não chegar, confira a caixa de
+spam primeiro — domínio novo ainda está construindo reputação — antes
+de considerar bug.
 
 ## 1. Cadastro do motorista
 
-- [ ] Abrir `vantastica.vercel.app/cadastro`
+- [ ] Abrir `vantastica.com.br/cadastro`
 - [ ] Criar conta com nome da van, e-mail e senha
 - [ ] Confirma que cai direto no Dashboard do motorista (`/motorista`)
 
@@ -60,8 +58,8 @@ normal, só o e-mail não chega (e isso é esperado, não é bug).
 ## 3. Vínculo do responsável
 
 - [ ] Abrir o link copiado numa aba anônima (ou outro navegador)
-- [ ] Criar conta usando **o e-mail da sua conta Resend** (ver aviso
-      acima) + uma senha
+- [ ] Criar conta usando um e-mail de teste (qualquer um — ver aviso
+      sobre domínio verificado acima) + uma senha
 - [ ] Confirma que cai em `/responsavel` mostrando o aluno cadastrado,
       status "Aguardando coleta"
 - [ ] Voltar na aba do motorista, recarregar o dossiê do aluno → o
@@ -174,7 +172,7 @@ Um turno é a ida-e-volta inteira, não só um embarque e uma entrega.
 
 ## 12. PWA (instalar como app)
 
-- [ ] No celular, abrir `vantastica.vercel.app/motorista` (ou
+- [ ] No celular, abrir `vantastica.com.br/motorista` (ou
       `/responsavel`) no Chrome/Safari
 - [ ] Adicionar à Tela de Início
 - [ ] Confirmar que abre em tela cheia (sem barra do navegador) e com
@@ -221,7 +219,62 @@ aproximada) — um como motorista, outro como responsável.
 - [ ] Trocar de turno (aba Vespertino, por exemplo) → a sequência de um
       turno não deve afetar a ordem dos alunos nos outros turnos
 
+## 16. Componentes de UI novos (toasts, modais, calendário, etc.)
+
+- [ ] Fazer uma ação com sucesso (ex.: salvar aluno) e uma com erro
+      (ex.: submeter um formulário inválido, se houver como) → toast
+      aparece no topo da tela e some sozinho
+- [ ] No dossiê do aluno, tocar num check-in → no celular deve abrir
+      como **gaveta** subindo de baixo; no desktop (tela larga), deve
+      abrir como **modal** centralizado
+- [ ] No financeiro, abrir o seletor de aluno → deve permitir buscar
+      digitando o nome (combobox), não só rolar uma lista
+- [ ] No perfil, ao lançar um evento de calendário, o campo de data deve
+      abrir um calendário visual (não só um input de texto)
+- [ ] Seções expansíveis (turnos, ocorrências, etc.) devem abrir/fechar
+      suavemente, sem "pulo" brusco de layout
+- [ ] Excluir um evento de calendário → deve pedir confirmação num
+      modal antes de excluir de fato
+- [ ] Enquanto uma tela carrega dados (ex.: entrar em `/motorista/rota`
+      numa conexão lenta), deve aparecer um esqueleto cinza piscando no
+      lugar do conteúdo, não uma tela em branco
+
+## 17. Páginas de erro
+
+- [ ] Acessar uma URL que não existe (ex.: `vantastica.com.br/xyz123`)
+      → deve mostrar a página 404 com a marca VanTástica, não o erro
+      genérico da Vercel
+- [ ] Se possível provocar um erro real numa tela (ex.: pedir pra mim
+      simular um), confirmar que aparece a tela "Algo deu errado" com
+      botão **Tentar de novo**, também com a marca do app
+
+## 18. SEO e compartilhamento
+
+- [ ] Colar o link `vantastica.com.br` no WhatsApp (pra você mesmo, por
+      exemplo) → deve aparecer um card de preview com título, descrição
+      e a imagem oficial da VanTástica (não um card vazio)
+- [ ] Abrir `vantastica.com.br/robots.txt` → deve listar as rotas
+      privadas bloqueadas (`/motorista`, `/responsavel`, `/admin`) e
+      apontar pro sitemap
+- [ ] Abrir `vantastica.com.br/sitemap.xml` → deve listar as páginas
+      públicas (`/`, `/login`, `/cadastro`, `/privacidade`, `/termos`)
+
+## 19. Política de Privacidade e Termos de Uso
+
+- [ ] No rodapé da landing (`vantastica.com.br`), os links **Política
+      de Privacidade** e **Termos de Uso** abrem as páginas certas
+- [ ] Nas telas de cadastro (motorista em `/cadastro` e responsável via
+      link de convite), aparece o aviso de concordância com os Termos e
+      a Política, com os links funcionando
+- [ ] Ler o texto e confirmar que faz sentido pro seu negócio — **isto
+      não é aconselhamento jurídico**; recomendo revisar com um
+      advogado antes de divulgar amplamente, principalmente pela parte
+      de dados de crianças (LGPD)
+
 ---
+
+Qualquer passo que falhar, me manda: em qual etapa, o que esperava
+acontecer e o que aconteceu de verdade (print ajuda bastante).
 
 Qualquer passo que falhar, me manda: em qual etapa, o que esperava
 acontecer e o que aconteceu de verdade (print ajuda bastante).
