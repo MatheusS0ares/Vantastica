@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { signInResponsavel, signUpResponsavel } from "@/app/(auth)/actions";
 import { ToastFromParams } from "@/components/ToastFromParams";
 
@@ -50,6 +51,18 @@ export default async function ConvitePage({
             Criar conta e vincular
           </button>
         </form>
+
+        <p className="mt-4 text-center text-xs text-muted">
+          Ao criar sua conta, você concorda com os{" "}
+          <Link href="/termos" className="font-medium text-blue">
+            Termos de Uso
+          </Link>{" "}
+          e a{" "}
+          <Link href="/privacidade" className="font-medium text-blue">
+            Política de Privacidade
+          </Link>
+          .
+        </p>
 
         <div className="my-6 flex items-center gap-3 text-xs text-muted">
           <div className="h-px flex-1 bg-border" />

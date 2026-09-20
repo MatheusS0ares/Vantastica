@@ -61,6 +61,18 @@ export default async function CadastroMotoristaPage() {
           </button>
         </form>
 
+        <p className="mt-4 text-center text-xs text-muted">
+          Ao criar sua conta, você concorda com os{" "}
+          <Link href="/termos" className="font-medium text-blue">
+            Termos de Uso
+          </Link>{" "}
+          e a{" "}
+          <Link href="/privacidade" className="font-medium text-blue">
+            Política de Privacidade
+          </Link>
+          .
+        </p>
+
         <div className="mt-6 text-center text-sm text-muted">
           Já tem conta?{" "}
           <Link href="/login" className="font-medium text-blue">

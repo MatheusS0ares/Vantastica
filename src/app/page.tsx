@@ -341,6 +341,15 @@ export default function Home() {
           © {new Date().getFullYear()} VanTástica. Feito com carinho no
           Brasil.
         </span>
+        <div className="flex items-center gap-3 text-xs text-muted">
+          <Link href="/privacidade" className="hover:text-navy">
+            Política de Privacidade
+          </Link>
+          <span aria-hidden>·</span>
+          <Link href="/termos" className="hover:text-navy">
+            Termos de Uso
+          </Link>
+        </div>
       </footer>
     </div>
   );
