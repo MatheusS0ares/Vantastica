@@ -5,6 +5,7 @@ import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { CompressedUploadForm } from "@/components/CompressedUploadForm";
 import { ToastFromParams } from "@/components/ToastFromParams";
 import { DatePickerField } from "@/components/DatePickerField";
+import { ConfirmDeleteButton } from "@/components/ConfirmDeleteButton";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -245,15 +246,12 @@ export default async function PerfilMotoristaPage() {
                 · {EVENT_TYPE_LABEL[event.event_type]}
               </span>
             </div>
-            <form action={deleteCalendarEvent.bind(null, event.id)}>
-              <button
-                type="submit"
-                className="text-sm text-coral"
-                aria-label="Remover evento"
-              >
-                Remover
-              </button>
-            </form>
+            <ConfirmDeleteButton
+              formAction={deleteCalendarEvent.bind(null, event.id)}
+              triggerLabel="Remover"
+              title="Remover evento?"
+              description={`"${event.title}" será removido do calendário — os responsáveis não vão mais ver esse evento.`}
+            />
           </div>
         ))}
       </div>
