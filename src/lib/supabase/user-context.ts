@@ -9,11 +9,21 @@ export type UserContext =
       role: "motorista";
       userId: string;
       organizationId: string;
+      organizationName?: string;
+      organizationLogoUrl?: string | null;
       isAdminImpersonation?: boolean;
     }
   | { role: "responsavel"; userId: string; guardianId: string }
   | { role: "admin"; userId: string }
   | { role: null; userId: string | null };
+
+type UserContextRpcRow = {
+  is_admin: boolean;
+  organization_id: string | null;
+  organization_name: string | null;
+  organization_logo_url: string | null;
+  guardian_id: string | null;
+};
 
 /**
  * Determina se o usuário logado é dono/motorista (membro de uma
@@ -24,6 +34,12 @@ export type UserContext =
  * cache() garante que o layout e a page da mesma navegação, que ambos
  * chamam getUserContext(), reaproveitem uma única chamada em vez de
  * duplicar o round-trip.
+ *
+ * As checagens de admin/motorista/responsável (que antes eram 3
+ * consultas sequenciais) viraram uma única chamada RPC
+ * (get_user_context, ver migration 0014) — cada ida-e-volta a menos
+ * aqui é uma navegação inteira mais rápida, já que isso roda em toda
+ * página.
  */
 export const getUserContext = cache(async (): Promise<UserContext> => {
   const supabase = await createClient();
@@ -35,13 +51,11 @@ export const getUserContext = cache(async (): Promise<UserContext> => {
     return { role: null, userId: null };
   }
 
-  const { data: adminRow } = await supabase
-    .from("platform_admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: ctx } = await supabase
+    .rpc("get_user_context")
+    .maybeSingle<UserContextRpcRow>();
 
-  if (adminRow) {
+  if (ctx?.is_admin) {
     const cookieStore = await cookies();
     const impersonatedOrgId = cookieStore.get(IMPERSONATION_COOKIE)?.value;
 
@@ -57,31 +71,18 @@ export const getUserContext = cache(async (): Promise<UserContext> => {
     return { role: "admin", userId: user.id };
   }
 
-  const { data: membership } = await supabase
-    .from("organization_members")
-    .select("organization_id")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (membership) {
+  if (ctx?.organization_id) {
     return {
       role: "motorista",
       userId: user.id,
-      organizationId: membership.organization_id,
+      organizationId: ctx.organization_id,
+      organizationName: ctx.organization_name ?? undefined,
+      organizationLogoUrl: ctx.organization_logo_url,
     };
   }
 
-  const { data: guardian } = await supabase
-    .from("guardians")
-    .select("id")
-    .eq("user_id", user.id)
-    .limit(1)
-    .maybeSingle();
-
-  if (guardian) {
-    return { role: "responsavel", userId: user.id, guardianId: guardian.id };
+  if (ctx?.guardian_id) {
+    return { role: "responsavel", userId: user.id, guardianId: ctx.guardian_id };
   }
 
   // Conta de motorista criada com confirmação de e-mail pendente: o

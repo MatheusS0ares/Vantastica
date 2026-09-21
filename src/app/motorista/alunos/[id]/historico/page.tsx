@@ -161,22 +161,35 @@ export default async function AlunoHistoricoPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: student } = await supabase
-    .from("students")
-    .select("id, full_name, photo_url")
-    .eq("id", id)
-    .maybeSingle();
+  const fromDate = new Date();
+  fromDate.setDate(fromDate.getDate() - HISTORY_DAYS);
+
+  // student, shiftsRaw e checkinsRaw só dependem do `id` da URL, não
+  // um do outro — buscar em paralelo poupa 2 idas-e-voltas sequenciais.
+  const [{ data: student }, { data: shiftsRaw }, { data: checkinsRaw }] =
+    await Promise.all([
+      supabase
+        .from("students")
+        .select("id, full_name, photo_url")
+        .eq("id", id)
+        .maybeSingle(),
+      supabase
+        .from("student_shifts")
+        .select("shift, expected_pickup_time, expected_dropoff_time")
+        .eq("student_id", id),
+      supabase
+        .from("checkins")
+        .select("event_type, occurred_at, shift")
+        .eq("student_id", id)
+        .gte("occurred_at", fromDate.toISOString())
+        .order("occurred_at", { ascending: true }),
+    ]);
 
   if (!student) {
     notFound();
   }
 
   const photoUrl = await getStudentPhotoSignedUrl(supabase, student.photo_url);
-
-  const { data: shiftsRaw } = await supabase
-    .from("student_shifts")
-    .select("shift, expected_pickup_time, expected_dropoff_time")
-    .eq("student_id", id);
 
   const shiftByName = new Map(
     ((shiftsRaw ?? []) as StudentShiftRow[]).map((s) => [
@@ -188,16 +201,6 @@ export default async function AlunoHistoricoPage({
     ]),
   );
   const enrolledShifts = SHIFTS.filter((shift) => shiftByName.has(shift));
-
-  const fromDate = new Date();
-  fromDate.setDate(fromDate.getDate() - HISTORY_DAYS);
-
-  const { data: checkinsRaw } = await supabase
-    .from("checkins")
-    .select("event_type, occurred_at, shift")
-    .eq("student_id", id)
-    .gte("occurred_at", fromDate.toISOString())
-    .order("occurred_at", { ascending: true });
 
   const checkins = (checkinsRaw ?? []) as CheckinRow[];
 

@@ -34,12 +34,23 @@ export default async function MotoristaLayout({
     redirect("/login");
   }
 
-  const supabase = await createClient();
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("name, logo_url")
-    .eq("id", context.organizationId)
-    .maybeSingle();
+  // Nome/logo já vêm no contexto (mesma chamada RPC que resolveu o
+  // papel do usuário) pro caso comum. Impersonação de admin é a
+  // exceção: o cookie só guarda o id da org impersonada, então essa é
+  // a única situação em que ainda vale a pena uma consulta à parte.
+  let orgName = context.organizationName;
+  let orgLogoUrl = context.organizationLogoUrl;
+
+  if (context.isAdminImpersonation) {
+    const supabase = await createClient();
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("name, logo_url")
+      .eq("id", context.organizationId)
+      .maybeSingle();
+    orgName = org?.name;
+    orgLogoUrl = org?.logo_url;
+  }
 
   return (
     <div className="flex flex-1 flex-col pb-24">
@@ -55,17 +66,17 @@ export default async function MotoristaLayout({
       )}
       <div className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-2">
-          {org?.logo_url && (
+          {orgLogoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={org.logo_url}
-              alt={org.name}
+              src={orgLogoUrl}
+              alt={orgName}
               className="h-8 w-8 rounded-pill object-cover"
             />
           )}
-          {org?.name && (
+          {orgName && (
             <span className="font-heading text-sm font-semibold text-navy">
-              {org.name}
+              {orgName}
             </span>
           )}
         </div>

@@ -82,13 +82,39 @@ export default async function AlunoDossiePage({
 
   const supabase = await createClient();
 
-  const { data: student } = await supabase
-    .from("students")
-    .select(
-      "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes, photo_url",
-    )
-    .eq("id", id)
-    .maybeSingle();
+  // As quatro consultas abaixo são independentes entre si (nenhuma usa
+  // o resultado de outra, só o `id` da URL) — rodar em paralelo evita
+  // pagar 4 idas-e-voltas sequenciais ao banco só pra montar essa tela.
+  const [
+    { data: student },
+    { data: shiftsRaw },
+    { data: guardianLinks },
+    { data: incidents },
+  ] = await Promise.all([
+    supabase
+      .from("students")
+      .select(
+        "id, full_name, school_name, class_name, pickup_address, dropoff_address, medical_notes, photo_url",
+      )
+      .eq("id", id)
+      .maybeSingle(),
+    supabase
+      .from("student_shifts")
+      .select("shift, expected_pickup_time, expected_dropoff_time")
+      .eq("student_id", id),
+    supabase
+      .from("student_guardians")
+      .select(
+        "relationship, is_primary_contact, can_pick_up, guardians(id, full_name, phone, user_id, invite_token)",
+      )
+      .eq("student_id", id),
+    supabase
+      .from("incidents")
+      .select("id, title, description, created_at")
+      .eq("student_id", id)
+      .order("created_at", { ascending: false })
+      .limit(10),
+  ]);
 
   if (!student) {
     notFound();
@@ -96,29 +122,10 @@ export default async function AlunoDossiePage({
 
   const photoUrl = await getStudentPhotoSignedUrl(supabase, student.photo_url);
 
-  const { data: shiftsRaw } = await supabase
-    .from("student_shifts")
-    .select("shift, expected_pickup_time, expected_dropoff_time")
-    .eq("student_id", id);
-
   const shiftByName = new Map(
     ((shiftsRaw ?? []) as StudentShiftRow[]).map((s) => [s.shift, s]),
   );
   const configuredShifts = SHIFTS.filter((shift) => shiftByName.has(shift));
-
-  const { data: guardianLinks } = await supabase
-    .from("student_guardians")
-    .select(
-      "relationship, is_primary_contact, can_pick_up, guardians(id, full_name, phone, user_id, invite_token)",
-    )
-    .eq("student_id", id);
-
-  const { data: incidents } = await supabase
-    .from("incidents")
-    .select("id, title, description, created_at")
-    .eq("student_id", id)
-    .order("created_at", { ascending: false })
-    .limit(10);
 
   const addGuardianAction = addGuardianToStudent.bind(null, id);
   const updatePhotoAction = updateStudentPhoto.bind(null, id);

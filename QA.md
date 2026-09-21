@@ -13,7 +13,9 @@ roteiro sempre que eu avisar que subi uma mudança grande.
       `0010_invoices_unique_month.sql`,
       `0011_platform_admin_and_branding.sql`,
       `0012_vehicle_locations.sql`,
-      `0013_student_shift_sequence.sql`
+      `0013_student_shift_sequence.sql`,
+      `0014_get_user_context_rpc.sql` (⚠️ **precisa rodar essa antes do
+      próximo deploy** — o código já espera essa função existir)
 - [ ] Virar admin da plataforma (só dá pra fazer direto no banco, de
       propósito): no SQL Editor, rodar
       `insert into platform_admins (user_id) select id from auth.users where email = 'SEU_EMAIL_AQUI';`

@@ -43,26 +43,32 @@ export default async function FinanceiroMotoristaPage() {
 
   const supabase = await createClient();
 
-  const { data: students } = await supabase
-    .from("students")
-    .select("id, full_name")
-    .eq("organization_id", context.organizationId)
-    .eq("is_active", true)
-    .order("full_name");
-
-  const { data: invoicesRaw } = await supabase
-    .from("invoices")
-    .select("id, amount_cents, due_date, status, reference_month, students(full_name)")
-    .eq("organization_id", context.organizationId)
-    .order("due_date", { ascending: false });
+  // As três consultas são independentes (todas só filtram por
+  // organization_id) — rodar em paralelo evita 3 idas-e-voltas
+  // sequenciais ao banco.
+  const [{ data: students }, { data: invoicesRaw }, { data: org }] =
+    await Promise.all([
+      supabase
+        .from("students")
+        .select("id, full_name")
+        .eq("organization_id", context.organizationId)
+        .eq("is_active", true)
+        .order("full_name"),
+      supabase
+        .from("invoices")
+        .select(
+          "id, amount_cents, due_date, status, reference_month, students(full_name)",
+        )
+        .eq("organization_id", context.organizationId)
+        .order("due_date", { ascending: false }),
+      supabase
+        .from("organizations")
+        .select("pix_key")
+        .eq("id", context.organizationId)
+        .maybeSingle(),
+    ]);
 
   const invoices = (invoicesRaw ?? []) as unknown as InvoiceRow[];
-
-  const { data: org } = await supabase
-    .from("organizations")
-    .select("pix_key")
-    .eq("id", context.organizationId)
-    .maybeSingle();
 
   const today = new Date().toISOString().slice(0, 7); // "2026-09"
 
