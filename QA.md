@@ -5,8 +5,11 @@ roteiro sempre que eu avisar que subi uma mudança grande.
 
 ## 0. Pré-requisitos
 
-- [ ] Rodar no Supabase (Dashboard → SQL Editor), na ordem, as migrações
-      que ainda não rodaram:
+- [ ] Pra saber quais migrações já rodaram, cole
+      `supabase/check_migrations.sql` no SQL Editor do Supabase e rode —
+      ele mostra `true`/`false` pra cada uma, sem alterar nada
+- [ ] Rodar no Supabase (Dashboard → SQL Editor), na ordem, as que
+      aparecerem como `false`:
       `0007_student_expected_times.sql`,
       `0008_shifts.sql`,
       `0009_organization_invites.sql`,
