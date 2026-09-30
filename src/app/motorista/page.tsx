@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { todayStartInBrazil } from "@/lib/timezone";
 import { VanHeroBanner } from "@/components/VanHeroBanner";
+import { PageWatermark } from "@/components/PageWatermark";
 
 export default async function MotoristaDashboardPage() {
   const context = await getUserContext();
@@ -94,43 +95,45 @@ export default async function MotoristaDashboardPage() {
   ];
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-5 py-6">
-      <VanHeroBanner
-        vanPhotoUrl={organization?.van_photo_url}
-        organizationName={context.organizationName}
-      />
+    <PageWatermark photoUrl={organization?.van_photo_url}>
+      <div className="flex flex-1 flex-col gap-6 px-5 py-6">
+        <VanHeroBanner
+          vanPhotoUrl={organization?.van_photo_url}
+          organizationName={context.organizationName}
+        />
 
-      <h1 className="font-heading text-xl font-bold text-navy">
-        Resumo de Hoje
-      </h1>
+        <h1 className="font-heading text-xl font-bold text-navy">
+          Resumo de Hoje
+        </h1>
 
-      <div className="grid grid-cols-2 gap-3">
-        {kpis.map((kpi) => (
-          <div
-            key={kpi.label}
-            className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card"
-          >
+        <div className="grid grid-cols-2 gap-3">
+          {kpis.map((kpi) => (
             <div
-              className={`h-9 w-9 rounded-pill ${kpi.bg} flex items-center justify-center`}
+              key={kpi.label}
+              className="flex flex-col gap-2 rounded-card bg-surface p-4 shadow-card"
             >
-              <div className={`h-3 w-3 rounded-pill ${kpi.color} bg-current`} />
+              <div
+                className={`h-9 w-9 rounded-pill ${kpi.bg} flex items-center justify-center`}
+              >
+                <div className={`h-3 w-3 rounded-pill ${kpi.color} bg-current`} />
+              </div>
+              <span className={`font-heading text-2xl font-bold ${kpi.color}`}>
+                {kpi.value}
+              </span>
+              <span className="text-xs font-medium text-muted">
+                {kpi.label}
+              </span>
             </div>
-            <span className={`font-heading text-2xl font-bold ${kpi.color}`}>
-              {kpi.value}
-            </span>
-            <span className="text-xs font-medium text-muted">
-              {kpi.label}
-            </span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      <Link
-        href="/motorista/rota"
-        className="rounded-pill bg-mint px-6 py-4 text-center font-medium text-white shadow-card transition hover:opacity-90"
-      >
-        Iniciar Rota
-      </Link>
-    </div>
+        <Link
+          href="/motorista/rota"
+          className="rounded-pill bg-mint px-6 py-4 text-center font-medium text-white shadow-card transition hover:opacity-90"
+        >
+          Iniciar Rota
+        </Link>
+      </div>
+    </PageWatermark>
   );
 }
