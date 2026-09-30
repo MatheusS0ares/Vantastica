@@ -25,6 +25,10 @@ roteiro sempre que eu avisar que subi uma mudança grande.
       trocando pelo e-mail da conta que você já usa pra logar no VanTástica
 - [ ] Confirmar que o deploy mais recente já subiu (vantastica.com.br —
       olha a data/hora do último deploy no painel da Vercel)
+- [ ] Confirmar que `SUPABASE_SERVICE_ROLE_KEY` está configurada nas
+      env vars da Vercel (Settings → Environment Variables) — sem ela,
+      "Adicionar responsável" quebra (é ela que cria a conta de login
+      do responsável direto, sem link de convite)
 
 ⚠️ **Sobre e-mail**: o domínio `vantastica.com.br` já está verificado no
 Resend, então o check-in deve chegar em **qualquer e-mail** de
@@ -55,20 +59,29 @@ de considerar bug.
       **Salvar horários preenchidos** → deve mostrar confirmação e
       esse aluno some da lista de pendentes (some da tela, já que
       ficou configurado)
-- [ ] Abrir "+ Adicionar responsável" → preencher → salvar
-- [ ] O responsável aparece na lista com badge **Pendente**
-- [ ] Clicar em **Copiar link de convite** (deve copiar algo tipo
-      `.../convite/xxxxxxxx-...`)
+- [ ] Abrir "+ Adicionar responsável" → preencher com um e-mail de
+      teste real → salvar
+- [ ] O responsável já aparece na lista como **Vinculado** (não mais
+      "Pendente" — a conta é criada na hora, sem link de convite) e
+      aparece um toast com a senha inicial
 
 ## 3. Vínculo do responsável
 
-- [ ] Abrir o link copiado numa aba anônima (ou outro navegador)
-- [ ] Criar conta usando um e-mail de teste (qualquer um — ver aviso
-      sobre domínio verificado acima) + uma senha
-- [ ] Confirma que cai em `/responsavel` mostrando o aluno cadastrado,
-      status "Aguardando coleta"
-- [ ] Voltar na aba do motorista, recarregar o dossiê do aluno → o
-      responsável agora deve aparecer como **Vinculado**
+- [ ] Numa aba anônima, ir em `/login` e entrar com o e-mail cadastrado
+      + a senha inicial do toast
+- [ ] Deve cair direto em `/trocar-senha` (não em `/responsavel` ainda)
+- [ ] Preencher nova senha (2x) e salvar → agora sim cai em
+      `/responsavel`, mostrando o aluno cadastrado, status "Aguardando
+      coleta"
+- [ ] Sair e entrar de novo com a senha nova → não deve pedir troca de
+      senha de novo
+- [ ] **Responsável com dois filhos em vans diferentes**: cadastrar o
+      mesmo e-mail como responsável de um segundo aluno → deve reaproveitar
+      a conta já existente (toast avisa "já tinha conta"), sem trocar a
+      senha que ele já definiu
+- [ ] **Guardian antigo "Pendente"** (se houver algum de antes dessa
+      mudança): no dossiê, preencher o e-mail no card amarelo e tocar
+      **Criar acesso agora** → deve virar **Vinculado** do mesmo jeito
 
 ## 4. Rota de Hoje — ciclo completo do turno (coração do produto)
 

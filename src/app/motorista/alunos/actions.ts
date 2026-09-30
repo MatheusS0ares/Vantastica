@@ -5,6 +5,10 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { uploadStudentPhoto, deleteStudentPhoto } from "@/lib/supabase/storage";
+import {
+  createOrFindGuardianAccount,
+  DEFAULT_GUARDIAN_PASSWORD,
+} from "@/lib/supabase/admin";
 import { SHIFTS, isShift, type Shift } from "@/lib/shifts";
 
 function readField(formData: FormData, name: string): string {
@@ -98,6 +102,57 @@ export async function updateStudentInfo(
   revalidatePath(`/motorista/alunos/${studentId}`);
   revalidatePath("/motorista/alunos");
   revalidatePath("/motorista/rota");
+}
+
+/**
+ * Cria o acesso de um responsável que ainda está "Pendente" (cadastrado
+ * antes dessa versão, no fluxo antigo de link de convite, ou que nunca
+ * chegou a confirmar o e-mail). Mesma lógica de addGuardianToStudent,
+ * só que pra um guardian que já existe.
+ */
+export async function activateGuardianAccount(
+  studentId: string,
+  guardianId: string,
+  formData: FormData,
+) {
+  const context = await getUserContext();
+  if (context.role !== "motorista") redirect("/login");
+
+  const email = readField(formData, "email");
+  if (!email) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent("Informe o e-mail do responsável.")}`,
+    );
+  }
+
+  const account = await createOrFindGuardianAccount(email);
+  if ("error" in account) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(account.error)}`,
+    );
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("guardians")
+    .update({ email, user_id: account.userId })
+    .eq("id", guardianId);
+
+  if (error) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  revalidatePath(`/motorista/alunos/${studentId}`);
+
+  const successMessage = account.isNew
+    ? `Acesso criado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — repasse pra ele e avise que vai trocar no primeiro acesso.`
+    : "Acesso vinculado! Esse e-mail já tinha conta (outro filho vinculado) — ele acessa com a senha de sempre.";
+
+  redirect(
+    `/motorista/alunos/${studentId}?success=${encodeURIComponent(successMessage)}`,
+  );
 }
 
 export async function updateGuardian(
@@ -321,16 +376,35 @@ export async function addGuardianToStudent(
   if (context.role !== "motorista") redirect("/login");
 
   const fullName = readField(formData, "fullName");
+  const email = readField(formData, "email");
   const phone = readField(formData, "phone") || null;
   const relationship = readField(formData, "relationship") || null;
   const isPrimaryContact = formData.get("isPrimaryContact") === "on";
   const canPickUp = formData.get("canPickUp") === "on";
 
+  if (!email) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent("Informe o e-mail do responsável.")}`,
+    );
+  }
+
+  // Cria a conta de login do responsável já com senha padrão, em vez do
+  // link de convite por e-mail (que dependia da confirmação de e-mail
+  // do Supabase e travava pra parte dos pais). Se o e-mail já tiver
+  // conta (outro filho do mesmo responsável), reaproveita sem mexer na
+  // senha.
+  const account = await createOrFindGuardianAccount(email);
+  if ("error" in account) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent(account.error)}`,
+    );
+  }
+
   const supabase = await createClient();
 
   const { data: guardian, error: guardianError } = await supabase
     .from("guardians")
-    .insert({ full_name: fullName, phone })
+    .insert({ full_name: fullName, phone, email, user_id: account.userId })
     .select("id")
     .single();
 
@@ -355,4 +429,12 @@ export async function addGuardianToStudent(
   }
 
   revalidatePath(`/motorista/alunos/${studentId}`);
+
+  const successMessage = account.isNew
+    ? `Responsável cadastrado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — repasse pra ele e avise que vai trocar no primeiro acesso.`
+    : "Responsável cadastrado! Esse e-mail já tinha conta (outro filho vinculado) — ele acessa com a senha de sempre.";
+
+  redirect(
+    `/motorista/alunos/${studentId}?success=${encodeURIComponent(successMessage)}`,
+  );
 }

@@ -32,6 +32,13 @@ export default async function ResponsavelLayout({
     redirect("/login");
   }
 
+  // Conta criada pelo motorista com senha padrão — força trocar antes
+  // de usar o app. /trocar-senha fica fora desse layout (senão essa
+  // mesma checagem redirecionaria pra lá de novo, em loop).
+  if (context.mustChangePassword) {
+    redirect("/trocar-senha");
+  }
+
   return (
     <div className="flex flex-1 flex-col pb-24">
       <div className="flex justify-end px-4 py-2">

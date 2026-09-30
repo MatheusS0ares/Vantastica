@@ -1,33 +1,45 @@
-import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getUserContext } from "@/lib/supabase/user-context";
 import { ToastFromParams } from "@/components/ToastFromParams";
-import { signIn } from "../actions";
+import { updateOwnPassword } from "./actions";
 
-export default function LoginPage() {
+export default async function TrocarSenhaPage() {
+  const context = await getUserContext();
+  if (context.role !== "responsavel") redirect("/login");
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <ToastFromParams />
       <div className="w-full max-w-sm rounded-card bg-surface p-6 shadow-card">
-        <h1 className="font-heading text-xl font-bold text-navy">Entrar</h1>
+        <h1 className="font-heading text-xl font-bold text-navy">
+          Criar sua senha
+        </h1>
         <p className="mt-1 text-sm text-muted">
-          Motorista ou responsável — o app te leva pro lugar certo.
+          Essa é sua primeira vez entrando — troque a senha inicial por uma
+          só sua antes de continuar.
         </p>
 
-        <form action={signIn} className="mt-6 flex flex-col gap-4">
+        <form
+          action={updateOwnPassword}
+          className="mt-6 flex flex-col gap-4"
+        >
           <label className="flex flex-col gap-1 text-sm font-medium text-text">
-            E-mail
-            <input
-              type="email"
-              name="email"
-              required
-              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
-            />
-          </label>
-          <label className="flex flex-col gap-1 text-sm font-medium text-text">
-            Senha
+            Nova senha
             <input
               type="password"
               name="password"
               required
+              minLength={6}
+              className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-text">
+            Confirmar nova senha
+            <input
+              type="password"
+              name="confirmPassword"
+              required
+              minLength={6}
               className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
             />
           </label>
@@ -35,22 +47,9 @@ export default function LoginPage() {
             type="submit"
             className="mt-2 rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
           >
-            Entrar
+            Salvar e continuar
           </button>
         </form>
-
-        <div className="mt-6 flex flex-col gap-1 text-center text-sm text-muted">
-          <span>
-            Dono de van?{" "}
-            <Link href="/cadastro" className="font-medium text-blue">
-              Criar conta
-            </Link>
-          </span>
-          <span>
-            Responsável? Use o e-mail e a senha que o motorista da van te
-            passou.
-          </span>
-        </div>
       </div>
     </div>
   );

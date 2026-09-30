@@ -13,7 +13,12 @@ export type UserContext =
       organizationLogoUrl?: string | null;
       isAdminImpersonation?: boolean;
     }
-  | { role: "responsavel"; userId: string; guardianId: string }
+  | {
+      role: "responsavel";
+      userId: string;
+      guardianId: string;
+      mustChangePassword?: boolean;
+    }
   | { role: "admin"; userId: string }
   | { role: null; userId: string | null };
 
@@ -82,7 +87,12 @@ export const getUserContext = cache(async (): Promise<UserContext> => {
   }
 
   if (ctx?.guardian_id) {
-    return { role: "responsavel", userId: user.id, guardianId: ctx.guardian_id };
+    return {
+      role: "responsavel",
+      userId: user.id,
+      guardianId: ctx.guardian_id,
+      mustChangePassword: Boolean(user.user_metadata?.must_change_password),
+    };
   }
 
   // Conta de motorista criada com confirmação de e-mail pendente: o

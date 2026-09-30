@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
-import { CopyInviteLink } from "@/components/CopyInviteLink";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
 import { ToastFromParams } from "@/components/ToastFromParams";
 import {
@@ -18,6 +17,7 @@ import {
   UsersIcon,
 } from "@/components/icons";
 import {
+  activateGuardianAccount,
   addGuardianToStudent,
   createIncident,
   updateGuardian,
@@ -31,6 +31,7 @@ type GuardianRow = {
   id: string;
   full_name: string;
   phone: string | null;
+  email: string | null;
   user_id: string | null;
   invite_token: string;
 };
@@ -105,7 +106,7 @@ export default async function AlunoDossiePage({
     supabase
       .from("student_guardians")
       .select(
-        "relationship, is_primary_contact, can_pick_up, guardians(id, full_name, phone, user_id, invite_token)",
+        "relationship, is_primary_contact, can_pick_up, guardians(id, full_name, phone, email, user_id, invite_token)",
       )
       .eq("student_id", id),
     supabase
@@ -443,13 +444,36 @@ export default async function AlunoDossiePage({
                   )}
                 </div>
                 {!isClaimed && (
-                  <>
-                    <span className="text-xs text-muted">
-                      Ainda não criou conta — envie o link pra ele se
-                      cadastrar e acompanhar o aluno
+                  <div className="flex flex-col gap-2 rounded-input bg-amber/10 p-3">
+                    <span className="text-xs text-amber">
+                      Sem acesso ao app ainda — cadastrado antes do e-mail
+                      virar obrigatório, ou o link de convite não chegou a
+                      ser usado.
                     </span>
-                    <CopyInviteLink token={guardian.invite_token} />
-                  </>
+                    <form
+                      action={activateGuardianAccount.bind(
+                        null,
+                        id,
+                        guardian.id,
+                      )}
+                      className="flex flex-col gap-2"
+                    >
+                      <input
+                        type="email"
+                        name="email"
+                        required
+                        placeholder="E-mail do responsável"
+                        defaultValue={guardian.email ?? ""}
+                        className="rounded-input border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-blue"
+                      />
+                      <button
+                        type="submit"
+                        className="rounded-pill bg-navy px-4 py-2 text-xs font-medium text-white transition hover:opacity-90"
+                      >
+                        Criar acesso agora
+                      </button>
+                    </form>
+                  </div>
                 )}
 
                 <Collapsible>
@@ -534,6 +558,20 @@ export default async function AlunoDossiePage({
                 required
                 className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
               />
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              E-mail
+              <input
+                type="email"
+                name="email"
+                required
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+              <span className="text-xs text-muted">
+                A conta já é criada com esse e-mail e uma senha inicial —
+                sem link de convite. Você recebe a senha na tela depois de
+                salvar, pra repassar pro responsável.
+              </span>
             </label>
             <label className="flex flex-col gap-1 text-sm font-medium text-text">
               Telefone
