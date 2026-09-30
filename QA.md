@@ -64,6 +64,9 @@ de considerar bug.
 - [ ] O responsável já aparece na lista como **Vinculado** (não mais
       "Pendente" — a conta é criada na hora, sem link de convite) e
       aparece um toast com a senha inicial
+- [ ] Checar a caixa de entrada do e-mail cadastrado → deve ter chegado
+      um e-mail "Seu acesso ao VanTástica" com e-mail/senha inicial (se
+      não chegar, o toast já mostra a senha como plano B)
 
 ## 3. Vínculo do responsável
 

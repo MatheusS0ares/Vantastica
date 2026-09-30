@@ -9,6 +9,7 @@ import {
   createOrFindGuardianAccount,
   DEFAULT_GUARDIAN_PASSWORD,
 } from "@/lib/supabase/admin";
+import { notifyGuardianOfNewAccount } from "@/lib/notifications";
 import { SHIFTS, isShift, type Shift } from "@/lib/shifts";
 
 function readField(formData: FormData, name: string): string {
@@ -144,10 +145,26 @@ export async function activateGuardianAccount(
     );
   }
 
+  if (account.isNew) {
+    const { data: student } = await supabase
+      .from("students")
+      .select("full_name")
+      .eq("id", studentId)
+      .maybeSingle();
+
+    await notifyGuardianOfNewAccount({
+      studentName: student?.full_name ?? "seu filho(a)",
+      organizationName: context.organizationName ?? "VanTástica",
+      organizationLogoUrl: context.organizationLogoUrl,
+      loginEmail: email,
+      password: DEFAULT_GUARDIAN_PASSWORD,
+    });
+  }
+
   revalidatePath(`/motorista/alunos/${studentId}`);
 
   const successMessage = account.isNew
-    ? `Acesso criado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — repasse pra ele e avise que vai trocar no primeiro acesso.`
+    ? `Acesso criado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — mandamos também por e-mail, mas repasse por garantia caso não chegue.`
     : "Acesso vinculado! Esse e-mail já tinha conta (outro filho vinculado) — ele acessa com a senha de sempre.";
 
   redirect(
@@ -428,10 +445,26 @@ export async function addGuardianToStudent(
     );
   }
 
+  if (account.isNew) {
+    const { data: student } = await supabase
+      .from("students")
+      .select("full_name")
+      .eq("id", studentId)
+      .maybeSingle();
+
+    await notifyGuardianOfNewAccount({
+      studentName: student?.full_name ?? fullName,
+      organizationName: context.organizationName ?? "VanTástica",
+      organizationLogoUrl: context.organizationLogoUrl,
+      loginEmail: email,
+      password: DEFAULT_GUARDIAN_PASSWORD,
+    });
+  }
+
   revalidatePath(`/motorista/alunos/${studentId}`);
 
   const successMessage = account.isNew
-    ? `Responsável cadastrado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — repasse pra ele e avise que vai trocar no primeiro acesso.`
+    ? `Responsável cadastrado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — mandamos também por e-mail, mas repasse por garantia caso não chegue.`
     : "Responsável cadastrado! Esse e-mail já tinha conta (outro filho vinculado) — ele acessa com a senha de sempre.";
 
   redirect(

@@ -162,6 +162,168 @@ function buildCheckinEmailText({
   return `${copy.title}: ${studentName} ${copy.body}\n${dateLabel} às ${time}\n\n${organizationName} · VanTástica`;
 }
 
+function buildGuardianWelcomeEmailHtml({
+  studentName,
+  organizationName,
+  logoUrl,
+  loginEmail,
+  password,
+}: {
+  studentName: string;
+  organizationName: string;
+  logoUrl: string;
+  loginEmail: string;
+  password: string;
+}) {
+  const safeStudentName = escapeHtml(studentName);
+  const safeOrganizationName = escapeHtml(organizationName);
+  const safeLogoUrl = escapeHtml(logoUrl);
+  const safeLoginEmail = escapeHtml(loginEmail);
+  const safePassword = escapeHtml(password);
+
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+  <body style="margin:0;padding:0;background-color:#F7FAFC;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7FAFC;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+            <tr>
+              <td align="center" style="background-color:#FFFFFF;padding:28px 24px;border-bottom:1px solid #E2E8F0;">
+                <img src="${safeLogoUrl}" alt="${safeOrganizationName}" height="44" style="height:44px;max-width:220px;object-fit:contain;" />
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:32px 28px 8px;">
+                <p style="margin:0;color:#2D3748;font-size:17px;line-height:1.5;">
+                  Você foi cadastrado como responsável por
+                  <strong>${safeStudentName}</strong> na
+                  <strong>${safeOrganizationName}</strong>. Seu acesso ao
+                  VanTástica já está pronto:
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 28px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7FAFC;border-radius:12px;">
+                  <tr>
+                    <td style="padding:16px 20px;">
+                      <p style="margin:0;color:#718096;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
+                        E-mail
+                      </p>
+                      <p style="margin:4px 0 12px;color:#2D3748;font-size:16px;">
+                        ${safeLoginEmail}
+                      </p>
+                      <p style="margin:0;color:#718096;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
+                        Senha inicial
+                      </p>
+                      <p style="margin:4px 0 0;color:#2D3748;font-size:16px;font-family:monospace;">
+                        ${safePassword}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 28px 0;">
+                <p style="margin:0;color:#718096;font-size:14px;">
+                  No primeiro acesso, o app vai pedir pra você trocar essa
+                  senha por uma só sua.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 28px 32px;">
+                <a
+                  href="${SITE_URL}/login"
+                  style="display:inline-block;background-color:#1A365D;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:600;padding:12px 24px;border-radius:9999px;"
+                >
+                  Entrar no VanTástica
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 28px;background-color:#F7FAFC;border-top:1px solid #E2E8F0;">
+                <p style="margin:0;color:#A0AEC0;font-size:12px;line-height:1.6;">
+                  Você recebeu este e-mail porque foi cadastrado como
+                  responsável por ${safeStudentName} na
+                  ${safeOrganizationName}, via VanTástica.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+function buildGuardianWelcomeEmailText({
+  studentName,
+  organizationName,
+  loginEmail,
+  password,
+}: {
+  studentName: string;
+  organizationName: string;
+  loginEmail: string;
+  password: string;
+}) {
+  return `Você foi cadastrado como responsável por ${studentName} na ${organizationName}.\n\nE-mail: ${loginEmail}\nSenha inicial: ${password}\n\nNo primeiro acesso o app vai pedir pra trocar essa senha.\n\nEntrar: ${SITE_URL}/login`;
+}
+
+/**
+ * Avisa o responsável recém-cadastrado do próprio acesso (e-mail + senha
+ * inicial), já que a conta agora é criada direto pelo motorista em vez
+ * de por link de convite. Falha em silêncio — a conta já foi criada de
+ * qualquer forma, e o motorista também vê a senha na tela pra repassar
+ * manualmente se o e-mail não chegar.
+ */
+export async function notifyGuardianOfNewAccount({
+  studentName,
+  organizationName,
+  organizationLogoUrl,
+  loginEmail,
+  password,
+}: {
+  studentName: string;
+  organizationName: string;
+  organizationLogoUrl?: string | null;
+  loginEmail: string;
+  password: string;
+}) {
+  if (!process.env.RESEND_API_KEY) return;
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const logoUrl = organizationLogoUrl || DEFAULT_LOGO_URL;
+
+  try {
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [loginEmail],
+      bcc: BCC_EMAIL,
+      subject: `Seu acesso ao VanTástica · ${organizationName}`,
+      html: buildGuardianWelcomeEmailHtml({
+        studentName,
+        organizationName,
+        logoUrl,
+        loginEmail,
+        password,
+      }),
+      text: buildGuardianWelcomeEmailText({
+        studentName,
+        organizationName,
+        loginEmail,
+        password,
+      }),
+    });
+  } catch (err) {
+    console.error("Falha ao enviar e-mail de boas-vindas ao responsável:", err);
+  }
+}
+
 /**
  * Notifica por e-mail os responsáveis já vinculados (guardians.email só
  * existe depois que a pessoa reivindica o convite). Falha em silêncio —
