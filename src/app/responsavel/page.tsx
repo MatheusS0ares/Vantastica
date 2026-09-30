@@ -5,6 +5,7 @@ import { todayStartInBrazil, formatTimeInBrazil } from "@/lib/timezone";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
 import { LiveMap } from "@/components/LiveMap";
+import { VanHeroBanner } from "@/components/VanHeroBanner";
 import {
   getVehicleLocationForResponsavel,
   updateStudentPhotoAsGuardian,
@@ -55,6 +56,17 @@ export default async function ResponsavelStatusPage() {
     new Set(students.map((s) => s.organization_id)),
   );
 
+  const { data: organizationsRaw } = organizationIds.length
+    ? await supabase
+        .from("organizations")
+        .select("id, name, van_photo_url")
+        .in("id", organizationIds)
+    : { data: [] as { id: string; name: string; van_photo_url: string | null }[] };
+
+  const organizationsById = new Map(
+    (organizationsRaw ?? []).map((org) => [org.id, org]),
+  );
+
   const photoUrls = new Map(
     await Promise.all(
       students.map(
@@ -97,13 +109,21 @@ export default async function ResponsavelStatusPage() {
         </p>
       )}
 
-      {organizationIds.map((organizationId) => (
-        <LiveMap
-          key={organizationId}
-          organizationId={organizationId}
-          getLocation={getVehicleLocationForResponsavel}
-        />
-      ))}
+      {organizationIds.map((organizationId) => {
+        const organization = organizationsById.get(organizationId);
+        return (
+          <div key={organizationId} className="flex flex-col gap-3">
+            <VanHeroBanner
+              vanPhotoUrl={organization?.van_photo_url}
+              organizationName={organization?.name}
+            />
+            <LiveMap
+              organizationId={organizationId}
+              getLocation={getVehicleLocationForResponsavel}
+            />
+          </div>
+        );
+      })}
 
       <div className="flex flex-col gap-3">
         {students.map((student) => {

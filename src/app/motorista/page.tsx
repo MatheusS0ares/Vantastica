@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { todayStartInBrazil } from "@/lib/timezone";
+import { VanHeroBanner } from "@/components/VanHeroBanner";
 
 export default async function MotoristaDashboardPage() {
   const context = await getUserContext();
@@ -20,6 +21,7 @@ export default async function MotoristaDashboardPage() {
     { data: todaysCheckins },
     { count: incidentsToday },
     { data: monthInvoices },
+    { data: organization },
   ] = await Promise.all([
     supabase
       .from("students")
@@ -42,6 +44,11 @@ export default async function MotoristaDashboardPage() {
       .select("status, due_date")
       .eq("organization_id", context.organizationId)
       .gte("reference_month", monthStartStr),
+    supabase
+      .from("organizations")
+      .select("van_photo_url")
+      .eq("id", context.organizationId)
+      .maybeSingle(),
   ]);
 
   const embarcadosHoje = new Set(
@@ -88,6 +95,11 @@ export default async function MotoristaDashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-5 py-6">
+      <VanHeroBanner
+        vanPhotoUrl={organization?.van_photo_url}
+        organizationName={context.organizationName}
+      />
+
       <h1 className="font-heading text-xl font-bold text-navy">
         Resumo de Hoje
       </h1>
