@@ -2,10 +2,30 @@ import Link from "next/link";
 import { ToastFromParams } from "@/components/ToastFromParams";
 import { signIn } from "../actions";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: PageProps<"/login">) {
+  // O toast (ToastFromParams) já cobre a maioria dos casos, mas depende
+  // de JS carregar e a página hidratar — em navegador embutido de app
+  // de mensagem (ex.: abrir o link direto dentro do WhatsApp) isso às
+  // vezes não roda direito, e a pessoa só vê a tela de login "não fazer
+  // nada". Esse banner aqui é renderizado direto pelo servidor, sem
+  // depender de JS nenhum, como reforço.
+  const { error, notice } = await searchParams;
+
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-12">
       <ToastFromParams />
+      {typeof error === "string" && (
+        <div className="mb-4 w-full max-w-sm rounded-input bg-coral/10 px-4 py-3 text-sm text-coral">
+          {error}
+        </div>
+      )}
+      {typeof notice === "string" && (
+        <div className="mb-4 w-full max-w-sm rounded-input bg-blue/10 px-4 py-3 text-sm text-blue">
+          {notice}
+        </div>
+      )}
       <div className="w-full max-w-sm rounded-card bg-surface p-6 shadow-card">
         <h1 className="font-heading text-xl font-bold text-navy">Entrar</h1>
         <p className="mt-1 text-sm text-muted">

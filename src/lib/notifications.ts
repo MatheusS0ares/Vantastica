@@ -181,6 +181,28 @@ function buildGuardianWelcomeEmailHtml({
   const safeLoginEmail = escapeHtml(loginEmail);
   const safePassword = escapeHtml(password);
 
+  const features = [
+    "Acompanhar a van no mapa, em tempo real",
+    "Receber um aviso na hora do embarque, da entrega e de faltas",
+    "Ver mensalidades e a chave Pix pra pagamento",
+  ];
+
+  const featuresHtml = features
+    .map(
+      (feature) => `
+                  <tr>
+                    <td style="padding:4px 0;">
+                      <table role="presentation" cellpadding="0" cellspacing="0">
+                        <tr>
+                          <td valign="top" style="padding-right:8px;color:#2F855A;font-size:14px;font-weight:700;">✓</td>
+                          <td style="color:#4A5568;font-size:14px;line-height:1.5;">${escapeHtml(feature)}</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>`,
+    )
+    .join("");
+
   return `<!DOCTYPE html>
 <html lang="pt-BR">
   <body style="margin:0;padding:0;background-color:#F7FAFC;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
@@ -189,35 +211,50 @@ function buildGuardianWelcomeEmailHtml({
         <td align="center">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
             <tr>
-              <td align="center" style="background-color:#FFFFFF;padding:28px 24px;border-bottom:1px solid #E2E8F0;">
-                <img src="${safeLogoUrl}" alt="${safeOrganizationName}" height="44" style="height:44px;max-width:220px;object-fit:contain;" />
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:32px 28px 8px;">
-                <p style="margin:0;color:#2D3748;font-size:17px;line-height:1.5;">
-                  Você foi cadastrado como responsável por
-                  <strong>${safeStudentName}</strong> na
-                  <strong>${safeOrganizationName}</strong>. Seu acesso ao
-                  VanTástica já está pronto:
+              <td align="center" style="background-color:#1A365D;padding:32px 24px;">
+                <img src="${safeLogoUrl}" alt="${safeOrganizationName}" height="40" style="height:40px;max-width:200px;object-fit:contain;" />
+                <p style="margin:16px 0 0;color:#FFFFFF;font-size:19px;font-weight:700;">
+                  Bem-vindo(a) ao VanTástica!
                 </p>
               </td>
             </tr>
             <tr>
-              <td style="padding:16px 28px 0;">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7FAFC;border-radius:12px;">
+              <td style="padding:28px 28px 4px;">
+                <p style="margin:0;color:#2D3748;font-size:16px;line-height:1.6;">
+                  Você foi cadastrado(a) como responsável por
+                  <strong>${safeStudentName}</strong> na
+                  <strong>${safeOrganizationName}</strong>. O VanTástica é
+                  o app que a van usa pra avisar sobre o transporte
+                  escolar — e a partir de agora, você acompanha tudo por
+                  aqui.
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 28px 4px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  ${featuresHtml}
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:20px 28px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#F7FAFC;border-radius:12px;border:1px solid #E2E8F0;">
                   <tr>
-                    <td style="padding:16px 20px;">
-                      <p style="margin:0;color:#718096;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
+                    <td style="padding:18px 20px;">
+                      <p style="margin:0 0 10px;color:#1A365D;font-size:13px;font-weight:700;">
+                        🔑 Seu acesso
+                      </p>
+                      <p style="margin:0;color:#718096;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
                         E-mail
                       </p>
-                      <p style="margin:4px 0 12px;color:#2D3748;font-size:16px;">
+                      <p style="margin:2px 0 10px;color:#2D3748;font-size:16px;">
                         ${safeLoginEmail}
                       </p>
-                      <p style="margin:0;color:#718096;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
+                      <p style="margin:0;color:#718096;font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
                         Senha inicial
                       </p>
-                      <p style="margin:4px 0 0;color:#2D3748;font-size:16px;font-family:monospace;">
+                      <p style="margin:2px 0 0;color:#2D3748;font-size:16px;font-family:monospace;">
                         ${safePassword}
                       </p>
                     </td>
@@ -226,18 +263,18 @@ function buildGuardianWelcomeEmailHtml({
               </td>
             </tr>
             <tr>
-              <td style="padding:16px 28px 0;">
-                <p style="margin:0;color:#718096;font-size:14px;">
+              <td style="padding:12px 28px 0;">
+                <p style="margin:0;color:#718096;font-size:13px;line-height:1.5;">
                   No primeiro acesso, o app vai pedir pra você trocar essa
                   senha por uma só sua.
                 </p>
               </td>
             </tr>
             <tr>
-              <td style="padding:24px 28px 32px;">
+              <td align="center" style="padding:24px 28px 32px;">
                 <a
                   href="${SITE_URL}/login"
-                  style="display:inline-block;background-color:#1A365D;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:600;padding:12px 24px;border-radius:9999px;"
+                  style="display:inline-block;background-color:#1A365D;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:600;padding:13px 32px;border-radius:9999px;"
                 >
                   Entrar no VanTástica
                 </a>
@@ -246,7 +283,7 @@ function buildGuardianWelcomeEmailHtml({
             <tr>
               <td style="padding:20px 28px;background-color:#F7FAFC;border-top:1px solid #E2E8F0;">
                 <p style="margin:0;color:#A0AEC0;font-size:12px;line-height:1.6;">
-                  Você recebeu este e-mail porque foi cadastrado como
+                  Você recebeu este e-mail porque foi cadastrado(a) como
                   responsável por ${safeStudentName} na
                   ${safeOrganizationName}, via VanTástica.
                 </p>
@@ -271,7 +308,21 @@ function buildGuardianWelcomeEmailText({
   loginEmail: string;
   password: string;
 }) {
-  return `Você foi cadastrado como responsável por ${studentName} na ${organizationName}.\n\nE-mail: ${loginEmail}\nSenha inicial: ${password}\n\nNo primeiro acesso o app vai pedir pra trocar essa senha.\n\nEntrar: ${SITE_URL}/login`;
+  return `Bem-vindo(a) ao VanTástica!
+
+Você foi cadastrado(a) como responsável por ${studentName} na ${organizationName}. O VanTástica é o app que a van usa pra avisar sobre o transporte escolar — a partir de agora, você acompanha por aqui:
+
+- A van no mapa, em tempo real
+- Aviso na hora do embarque, da entrega e de faltas
+- Mensalidades e a chave Pix pra pagamento
+
+Seu acesso:
+E-mail: ${loginEmail}
+Senha inicial: ${password}
+
+No primeiro acesso o app vai pedir pra trocar essa senha.
+
+Entrar: ${SITE_URL}/login`;
 }
 
 /**
