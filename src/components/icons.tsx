@@ -237,3 +237,21 @@ export function CalendarIcon({ size = 20 }: IconProps) {
     </svg>
   );
 }
+
+export function ShareIcon({ size = 20 }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.9}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 15V4M8 8l4-4 4 4" />
+      <path d="M5.5 12v6.5a1.5 1.5 0 0 0 1.5 1.5h10a1.5 1.5 0 0 0 1.5-1.5V12" />
+    </svg>
+  );
+}

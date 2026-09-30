@@ -4,6 +4,7 @@ import { getUserContext } from "@/lib/supabase/user-context";
 import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/SignOutButton";
 import { MotoristaNav } from "@/components/MotoristaNav";
+import { InstallPrompt } from "@/components/InstallPrompt";
 import { stopImpersonating } from "@/app/admin/actions";
 
 export const metadata: Metadata = {
@@ -82,6 +83,7 @@ export default async function MotoristaLayout({
         </div>
         <SignOutButton />
       </div>
+      <InstallPrompt />
       {children}
       <MotoristaNav />
     </div>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ResponsavelNav } from "@/components/ResponsavelNav";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 export const metadata: Metadata = {
   title: "VanTástica Responsável",
@@ -44,6 +45,7 @@ export default async function ResponsavelLayout({
       <div className="flex justify-end px-4 py-2">
         <SignOutButton />
       </div>
+      <InstallPrompt />
       {children}
       <ResponsavelNav />
     </div>
