@@ -30,6 +30,12 @@ const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://vantastica.vercel.app";
 const DEFAULT_LOGO_URL = `${SITE_URL}/logo.png`;
 
+// Opcional: recebe uma cópia oculta de todo e-mail de check-in — útil
+// pra confirmar que o envio está saindo de verdade, sem aparecer pros
+// responsáveis que também receberam. Configurar em RESEND_BCC_EMAIL na
+// Vercel; sem essa env var, ninguém entra em cópia.
+const BCC_EMAIL = process.env.RESEND_BCC_EMAIL || undefined;
+
 const EVENT_COPY: Record<
   CheckinEvent,
   { title: string; body: string; color: string; bg: string }
@@ -188,6 +194,7 @@ export async function notifyGuardiansOfCheckin({
     await resend.emails.send({
       from: FROM_EMAIL,
       to: guardianEmails,
+      bcc: BCC_EMAIL,
       subject: `${studentName} · ${copy.title}`,
       html: buildCheckinEmailHtml({
         studentName,
