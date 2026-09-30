@@ -5,10 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { uploadStudentPhoto, deleteStudentPhoto } from "@/lib/supabase/storage";
-import {
-  createOrFindGuardianAccount,
-  DEFAULT_GUARDIAN_PASSWORD,
-} from "@/lib/supabase/admin";
+import { createOrFindGuardianAccount } from "@/lib/supabase/admin";
 import { notifyGuardianOfNewAccount } from "@/lib/notifications";
 import { SHIFTS, isShift, type Shift } from "@/lib/shifts";
 
@@ -120,13 +117,21 @@ export async function activateGuardianAccount(
   if (context.role !== "motorista") redirect("/login");
 
   const email = readField(formData, "email");
+  const password = readField(formData, "password");
+
   if (!email) {
     redirect(
       `/motorista/alunos/${studentId}?error=${encodeURIComponent("Informe o e-mail do responsável.")}`,
     );
   }
 
-  const account = await createOrFindGuardianAccount(email);
+  if (password.length < 6) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent("A senha inicial precisa ter pelo menos 6 caracteres.")}`,
+    );
+  }
+
+  const account = await createOrFindGuardianAccount(email, password);
   if ("error" in account) {
     redirect(
       `/motorista/alunos/${studentId}?error=${encodeURIComponent(account.error)}`,
@@ -157,14 +162,14 @@ export async function activateGuardianAccount(
       organizationName: context.organizationName ?? "VanTástica",
       organizationLogoUrl: context.organizationLogoUrl,
       loginEmail: email,
-      password: DEFAULT_GUARDIAN_PASSWORD,
+      password,
     });
   }
 
   revalidatePath(`/motorista/alunos/${studentId}`);
 
   const successMessage = account.isNew
-    ? `Acesso criado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — mandamos também por e-mail, mas repasse por garantia caso não chegue.`
+    ? `Acesso criado! Senha inicial: ${password} — mandamos também por e-mail, mas repasse por garantia caso não chegue.`
     : "Acesso vinculado! Esse e-mail já tinha conta (outro filho vinculado) — ele acessa com a senha de sempre.";
 
   redirect(
@@ -394,6 +399,7 @@ export async function addGuardianToStudent(
 
   const fullName = readField(formData, "fullName");
   const email = readField(formData, "email");
+  const password = readField(formData, "password");
   const phone = readField(formData, "phone") || null;
   const relationship = readField(formData, "relationship") || null;
   const isPrimaryContact = formData.get("isPrimaryContact") === "on";
@@ -405,12 +411,18 @@ export async function addGuardianToStudent(
     );
   }
 
-  // Cria a conta de login do responsável já com senha padrão, em vez do
-  // link de convite por e-mail (que dependia da confirmação de e-mail
-  // do Supabase e travava pra parte dos pais). Se o e-mail já tiver
-  // conta (outro filho do mesmo responsável), reaproveita sem mexer na
-  // senha.
-  const account = await createOrFindGuardianAccount(email);
+  if (password.length < 6) {
+    redirect(
+      `/motorista/alunos/${studentId}?error=${encodeURIComponent("A senha inicial precisa ter pelo menos 6 caracteres.")}`,
+    );
+  }
+
+  // Cria a conta de login do responsável já com a senha que o motorista
+  // escolheu, em vez do link de convite por e-mail (que dependia da
+  // confirmação de e-mail do Supabase e travava pra parte dos pais). Se
+  // o e-mail já tiver conta (outro filho do mesmo responsável),
+  // reaproveita sem mexer na senha.
+  const account = await createOrFindGuardianAccount(email, password);
   if ("error" in account) {
     redirect(
       `/motorista/alunos/${studentId}?error=${encodeURIComponent(account.error)}`,
@@ -457,14 +469,14 @@ export async function addGuardianToStudent(
       organizationName: context.organizationName ?? "VanTástica",
       organizationLogoUrl: context.organizationLogoUrl,
       loginEmail: email,
-      password: DEFAULT_GUARDIAN_PASSWORD,
+      password,
     });
   }
 
   revalidatePath(`/motorista/alunos/${studentId}`);
 
   const successMessage = account.isNew
-    ? `Responsável cadastrado! Senha inicial: ${DEFAULT_GUARDIAN_PASSWORD} — mandamos também por e-mail, mas repasse por garantia caso não chegue.`
+    ? `Responsável cadastrado! Senha inicial: ${password} — mandamos também por e-mail, mas repasse por garantia caso não chegue.`
     : "Responsável cadastrado! Esse e-mail já tinha conta (outro filho vinculado) — ele acessa com a senha de sempre.";
 
   redirect(

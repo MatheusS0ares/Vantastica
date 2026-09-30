@@ -11,10 +11,9 @@ function createAdminClient() {
   );
 }
 
-// Senha inicial de toda conta de responsável criada pelo motorista —
-// combinada de antemão com quem usa o app (ex.: "a senha de todo mundo
-// começa assim, e no primeiro acesso já pede pra trocar"). Pode trocar
-// via DEFAULT_GUARDIAN_PASSWORD na Vercel sem precisar redeploy de código.
+// Sugestão pré-preenchida no campo de senha do formulário — o motorista
+// pode aceitar ou digitar outra por cima. Configurável via
+// DEFAULT_GUARDIAN_PASSWORD na Vercel sem precisar redeploy de código.
 export const DEFAULT_GUARDIAN_PASSWORD =
   process.env.DEFAULT_GUARDIAN_PASSWORD || "vantastica123";
 
@@ -47,11 +46,11 @@ async function findUserByEmail(
 }
 
 /**
- * Cria a conta de login do responsável direto, com a senha padrão, já
- * confirmada (sem precisar do e-mail de confirmação do Supabase, que
- * era onde o fluxo antigo de convite por link travava pra parte dos
- * pais). Marca must_change_password pra forçar a troca no primeiro
- * acesso.
+ * Cria a conta de login do responsável direto, com a senha que o
+ * motorista escolheu no formulário, já confirmada (sem precisar do
+ * e-mail de confirmação do Supabase, que era onde o fluxo antigo de
+ * convite por link travava pra parte dos pais). Marca
+ * must_change_password pra forçar a troca no primeiro acesso.
  *
  * Se o e-mail já tiver conta (ex.: o mesmo responsável tem outro filho
  * cadastrado em outra van/turma), reaproveita a conta existente sem
@@ -59,12 +58,13 @@ async function findUserByEmail(
  */
 export async function createOrFindGuardianAccount(
   email: string,
+  password: string,
 ): Promise<{ userId: string; isNew: boolean } | { error: string }> {
   const admin = createAdminClient();
 
   const { data, error } = await admin.auth.admin.createUser({
     email,
-    password: DEFAULT_GUARDIAN_PASSWORD,
+    password,
     email_confirm: true,
     user_metadata: { must_change_password: true },
   });

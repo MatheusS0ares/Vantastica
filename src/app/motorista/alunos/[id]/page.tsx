@@ -10,6 +10,7 @@ import {
   CollapsibleContent,
 } from "@/components/ui/collapsible";
 import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
+import { DEFAULT_GUARDIAN_PASSWORD } from "@/lib/supabase/admin";
 import {
   AlertIcon,
   ClockIcon,
@@ -466,6 +467,15 @@ export default async function AlunoDossiePage({
                         defaultValue={guardian.email ?? ""}
                         className="rounded-input border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-blue"
                       />
+                      <input
+                        type="text"
+                        name="password"
+                        required
+                        minLength={6}
+                        placeholder="Senha inicial"
+                        defaultValue={DEFAULT_GUARDIAN_PASSWORD}
+                        className="rounded-input border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-blue"
+                      />
                       <button
                         type="submit"
                         className="rounded-pill bg-navy px-4 py-2 text-xs font-medium text-white transition hover:opacity-90"
@@ -568,9 +578,22 @@ export default async function AlunoDossiePage({
                 className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
               />
               <span className="text-xs text-muted">
-                A conta já é criada com esse e-mail e uma senha inicial —
-                sem link de convite. Você recebe a senha na tela depois de
-                salvar, pra repassar pro responsável.
+                A conta já é criada com esse e-mail — sem link de convite.
+              </span>
+            </label>
+            <label className="flex flex-col gap-1 text-sm font-medium text-text">
+              Senha inicial
+              <input
+                type="text"
+                name="password"
+                required
+                minLength={6}
+                defaultValue={DEFAULT_GUARDIAN_PASSWORD}
+                className="rounded-input border border-border bg-surface px-3 py-2 text-base outline-none focus:border-blue"
+              />
+              <span className="text-xs text-muted">
+                Pode deixar essa mesma ou trocar por outra. O responsável
+                recebe por e-mail e é obrigado a trocar no primeiro acesso.
               </span>
             </label>
             <label className="flex flex-col gap-1 text-sm font-medium text-text">
