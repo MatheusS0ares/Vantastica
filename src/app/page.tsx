@@ -6,7 +6,13 @@ import {
   SmartphoneIcon,
   UsersIcon,
   WalletIcon,
+  WhatsAppIcon,
 } from "@/components/icons";
+
+const WHATSAPP_URL =
+  "https://wa.me/5561985818667?text=" +
+  encodeURIComponent("Oi! Quero saber mais sobre o VanTástica.");
+
 const TRUST_BADGES = [
   "📍 GPS ao vivo",
   "💳 Pix integrado",
@@ -51,9 +57,9 @@ const BENTO_FEATURES = [
 
 const FAQS = [
   {
-    question: "Preciso pagar pra usar?",
+    question: "Quanto custa?",
     answer:
-      "Por enquanto, o cadastro é gratuito. O dinheiro das mensalidades vai direto dos pais pra sua chave Pix, sem intermediário — a VanTástica não fica com nenhuma parte disso.",
+      "Tem uma mensalidade simples e acessível pelo uso do sistema — bem mais barata do que você imagina. O dinheiro das mensalidades dos alunos continua indo direto pra sua chave Pix, sem intermediário nenhum. Chama a gente no WhatsApp pra saber o valor certinho.",
   },
   {
     question: "Funciona pra quem tem mais de uma van (frota)?",
@@ -302,10 +308,19 @@ export default function Home() {
                 Pronto pra simplificar sua van escolar?
               </span>
               <p className="max-w-sm text-sm text-white/80">
-                Cadastro gratuito, sem cartão de crédito. Comece a usar hoje
-                mesmo.
+                Investimento simples e acessível — bem mais barato do que
+                você imagina. Fala com a gente pra saber o valor.
               </p>
-              <div className="flex flex-col gap-3 pt-2 sm:flex-row">
+              <a
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-pill bg-[#25D366] px-6 py-3 font-medium text-white shadow-card transition hover:-translate-y-0.5 hover:opacity-90"
+              >
+                <WhatsAppIcon size={18} />
+                Falar no WhatsApp
+              </a>
+              <div className="flex flex-col gap-3 pt-1 sm:flex-row">
                 <Link
                   href="/cadastro"
                   className="rounded-pill bg-white px-6 py-3 font-medium text-navy shadow-card transition hover:-translate-y-0.5 hover:opacity-90"

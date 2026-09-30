@@ -69,7 +69,7 @@ export async function recordCheckin(
           .maybeSingle(),
         supabase
           .from("organizations")
-          .select("name, logo_url")
+          .select("name, logo_url, van_photo_url")
           .eq("id", organizationId)
           .maybeSingle(),
         getVehicleLocation(supabase, organizationId),
@@ -103,6 +103,7 @@ export async function recordCheckin(
       guardianEmails,
       organizationName: organization?.name ?? "VanTástica",
       organizationLogoUrl: organization?.logo_url,
+      vanPhotoUrl: organization?.van_photo_url,
       occurrenceText: occurrence || null,
       isLocationLive,
     });

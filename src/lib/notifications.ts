@@ -36,6 +36,22 @@ const DEFAULT_LOGO_URL = `${SITE_URL}/logo.png`;
 // Vercel; sem essa env var, ninguém entra em cópia.
 const BCC_EMAIL = process.env.RESEND_BCC_EMAIL || undefined;
 
+// Foto real da van (não a logo) — mostrar o veículo de verdade passa
+// mais credibilidade pro responsável do que só uma marca abstrata.
+// Cada organização só vê a própria foto (vem de organizations.van_photo_url,
+// buscado sempre filtrando pela organization_id de quem gerou o
+// evento), então isso nunca mistura entre vans diferentes.
+function buildVanPhotoHtml(vanPhotoUrl?: string | null): string {
+  if (!vanPhotoUrl) return "";
+  const safeUrl = escapeHtml(vanPhotoUrl);
+  return `
+            <tr>
+              <td style="padding:20px 28px 0;">
+                <img src="${safeUrl}" alt="Van" width="100%" style="display:block;width:100%;max-height:220px;object-fit:cover;border-radius:12px;" />
+              </td>
+            </tr>`;
+}
+
 const EVENT_COPY: Record<
   CheckinEvent,
   { title: string; body: string; color: string; bg: string }
@@ -70,6 +86,7 @@ export function buildCheckinEmailHtml({
   dateLabel,
   organizationName,
   logoUrl,
+  vanPhotoUrl,
   occurrenceText,
   isLocationLive,
 }: {
@@ -79,6 +96,7 @@ export function buildCheckinEmailHtml({
   dateLabel: string;
   organizationName: string;
   logoUrl: string;
+  vanPhotoUrl?: string | null;
   occurrenceText?: string | null;
   isLocationLive?: boolean;
 }) {
@@ -86,6 +104,7 @@ export function buildCheckinEmailHtml({
   const safeStudentName = escapeHtml(studentName);
   const safeOrganizationName = escapeHtml(organizationName);
   const safeLogoUrl = escapeHtml(logoUrl);
+  const vanPhotoHtml = buildVanPhotoHtml(vanPhotoUrl);
 
   const occurrenceHtml = occurrenceText
     ? `
@@ -131,6 +150,7 @@ export function buildCheckinEmailHtml({
                 <img src="${safeLogoUrl}" alt="${safeOrganizationName}" height="44" style="height:44px;max-width:220px;object-fit:contain;" />
               </td>
             </tr>
+            ${vanPhotoHtml}
             <tr>
               <td style="padding:32px 28px 8px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${copy.bg};border-radius:12px;">
@@ -212,12 +232,14 @@ function buildGuardianWelcomeEmailHtml({
   studentName,
   organizationName,
   logoUrl,
+  vanPhotoUrl,
   loginEmail,
   password,
 }: {
   studentName: string;
   organizationName: string;
   logoUrl: string;
+  vanPhotoUrl?: string | null;
   loginEmail: string;
   password: string;
 }) {
@@ -226,6 +248,7 @@ function buildGuardianWelcomeEmailHtml({
   const safeLogoUrl = escapeHtml(logoUrl);
   const safeLoginEmail = escapeHtml(loginEmail);
   const safePassword = escapeHtml(password);
+  const vanPhotoHtml = buildVanPhotoHtml(vanPhotoUrl);
 
   const features = [
     "Acompanhar a van no mapa, em tempo real",
@@ -264,6 +287,7 @@ function buildGuardianWelcomeEmailHtml({
                 </p>
               </td>
             </tr>
+            ${vanPhotoHtml}
             <tr>
               <td style="padding:28px 28px 4px;">
                 <p style="margin:0;color:#2D3748;font-size:16px;line-height:1.6;">
@@ -382,12 +406,14 @@ export async function notifyGuardianOfNewAccount({
   studentName,
   organizationName,
   organizationLogoUrl,
+  vanPhotoUrl,
   loginEmail,
   password,
 }: {
   studentName: string;
   organizationName: string;
   organizationLogoUrl?: string | null;
+  vanPhotoUrl?: string | null;
   loginEmail: string;
   password: string;
 }) {
@@ -406,6 +432,7 @@ export async function notifyGuardianOfNewAccount({
         studentName,
         organizationName,
         logoUrl,
+        vanPhotoUrl,
         loginEmail,
         password,
       }),
@@ -433,6 +460,7 @@ export async function notifyGuardiansOfCheckin({
   guardianEmails,
   organizationName,
   organizationLogoUrl,
+  vanPhotoUrl,
   occurrenceText,
   isLocationLive,
 }: {
@@ -442,6 +470,7 @@ export async function notifyGuardiansOfCheckin({
   guardianEmails: string[];
   organizationName: string;
   organizationLogoUrl?: string | null;
+  vanPhotoUrl?: string | null;
   occurrenceText?: string | null;
   isLocationLive?: boolean;
 }) {
@@ -466,6 +495,7 @@ export async function notifyGuardiansOfCheckin({
         dateLabel,
         organizationName,
         logoUrl,
+        vanPhotoUrl,
         occurrenceText,
         isLocationLive,
       }),

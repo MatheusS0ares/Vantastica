@@ -152,22 +152,31 @@ export async function activateGuardianAccount(
   }
 
   if (account.isNew) {
+    const organizationId = context.organizationId;
     const organizationName = context.organizationName ?? "VanTástica";
     const organizationLogoUrl = context.organizationLogoUrl;
 
     // Não trava o clique do motorista esperando o Resend responder — o
     // acesso já foi criado acima, o e-mail é só um aviso extra.
     after(async () => {
-      const { data: student } = await supabase
-        .from("students")
-        .select("full_name")
-        .eq("id", studentId)
-        .maybeSingle();
+      const [{ data: student }, { data: organization }] = await Promise.all([
+        supabase
+          .from("students")
+          .select("full_name")
+          .eq("id", studentId)
+          .maybeSingle(),
+        supabase
+          .from("organizations")
+          .select("van_photo_url")
+          .eq("id", organizationId)
+          .maybeSingle(),
+      ]);
 
       await notifyGuardianOfNewAccount({
         studentName: student?.full_name ?? "seu filho(a)",
         organizationName,
         organizationLogoUrl,
+        vanPhotoUrl: organization?.van_photo_url,
         loginEmail: email,
         password,
       });
@@ -466,22 +475,31 @@ export async function addGuardianToStudent(
   }
 
   if (account.isNew) {
+    const organizationId = context.organizationId;
     const organizationName = context.organizationName ?? "VanTástica";
     const organizationLogoUrl = context.organizationLogoUrl;
 
     // Não trava o clique do motorista esperando o Resend responder — o
     // acesso já foi criado acima, o e-mail é só um aviso extra.
     after(async () => {
-      const { data: student } = await supabase
-        .from("students")
-        .select("full_name")
-        .eq("id", studentId)
-        .maybeSingle();
+      const [{ data: student }, { data: organization }] = await Promise.all([
+        supabase
+          .from("students")
+          .select("full_name")
+          .eq("id", studentId)
+          .maybeSingle(),
+        supabase
+          .from("organizations")
+          .select("van_photo_url")
+          .eq("id", organizationId)
+          .maybeSingle(),
+      ]);
 
       await notifyGuardianOfNewAccount({
         studentName: student?.full_name ?? fullName,
         organizationName,
         organizationLogoUrl,
+        vanPhotoUrl: organization?.van_photo_url,
         loginEmail: email,
         password,
       });
