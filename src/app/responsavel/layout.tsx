@@ -4,6 +4,7 @@ import { getUserContext } from "@/lib/supabase/user-context";
 import { SignOutButton } from "@/components/SignOutButton";
 import { ResponsavelNav } from "@/components/ResponsavelNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { PageWatermark } from "@/components/PageWatermark";
 
 export const metadata: Metadata = {
   title: "VanTástica Responsável",
@@ -41,13 +42,15 @@ export default async function ResponsavelLayout({
   }
 
   return (
-    <div className="flex flex-1 flex-col pb-24">
-      <div className="flex justify-end px-4 py-2">
-        <SignOutButton />
+    <PageWatermark photoUrl={context.vanPhotoUrl}>
+      <div className="flex flex-1 flex-col pb-24">
+        <div className="flex justify-end px-4 py-2">
+          <SignOutButton />
+        </div>
+        <InstallPrompt />
+        {children}
+        <ResponsavelNav />
       </div>
-      <InstallPrompt />
-      {children}
-      <ResponsavelNav />
-    </div>
+    </PageWatermark>
   );
 }

@@ -50,4 +50,14 @@ select '0013_student_shift_sequence',
 union all
 select '0014_get_user_context_rpc',
   exists (select 1 from pg_proc where proname = 'get_user_context')
+union all
+select '0015_get_user_context_van_photo',
+  exists (
+    select 1
+    from pg_proc p
+    join pg_type t on t.oid = p.prorettype
+    join pg_attribute a on a.attrelid = t.typrelid
+    where p.proname = 'get_user_context'
+      and a.attname = 'organization_van_photo_url'
+  )
 order by migration;

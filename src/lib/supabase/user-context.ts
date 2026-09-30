@@ -11,6 +11,7 @@ export type UserContext =
       organizationId: string;
       organizationName?: string;
       organizationLogoUrl?: string | null;
+      organizationVanPhotoUrl?: string | null;
       isAdminImpersonation?: boolean;
     }
   | {
@@ -18,6 +19,7 @@ export type UserContext =
       userId: string;
       guardianId: string;
       mustChangePassword?: boolean;
+      vanPhotoUrl?: string | null;
     }
   | { role: "admin"; userId: string }
   | { role: null; userId: string | null };
@@ -27,7 +29,9 @@ type UserContextRpcRow = {
   organization_id: string | null;
   organization_name: string | null;
   organization_logo_url: string | null;
+  organization_van_photo_url: string | null;
   guardian_id: string | null;
+  guardian_van_photo_url: string | null;
 };
 
 /**
@@ -83,6 +87,7 @@ export const getUserContext = cache(async (): Promise<UserContext> => {
       organizationId: ctx.organization_id,
       organizationName: ctx.organization_name ?? undefined,
       organizationLogoUrl: ctx.organization_logo_url,
+      organizationVanPhotoUrl: ctx.organization_van_photo_url,
     };
   }
 
@@ -92,6 +97,7 @@ export const getUserContext = cache(async (): Promise<UserContext> => {
       userId: user.id,
       guardianId: ctx.guardian_id,
       mustChangePassword: Boolean(user.user_metadata?.must_change_password),
+      vanPhotoUrl: ctx.guardian_van_photo_url,
     };
   }
 

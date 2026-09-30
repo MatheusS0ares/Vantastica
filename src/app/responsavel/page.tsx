@@ -6,7 +6,6 @@ import { getStudentPhotoSignedUrl } from "@/lib/supabase/storage";
 import { EditableStudentPhoto } from "@/components/EditableStudentPhoto";
 import { LiveMap } from "@/components/LiveMap";
 import { VanHeroBanner } from "@/components/VanHeroBanner";
-import { PageWatermark } from "@/components/PageWatermark";
 import {
   getVehicleLocationForResponsavel,
   updateStudentPhotoAsGuardian,
@@ -98,76 +97,67 @@ export default async function ResponsavelStatusPage() {
     });
   }
 
-  // Marca d'água de fundo usa a van da primeira organização — na
-  // grande maioria dos casos o responsável só tem filhos numa van só.
-  const primaryVanPhotoUrl = organizationsById.get(organizationIds[0])
-    ?.van_photo_url;
-
   return (
-    <PageWatermark photoUrl={primaryVanPhotoUrl}>
-      <div className="flex flex-1 flex-col gap-4 px-5 py-6">
-        <h1 className="font-heading text-xl font-bold text-navy">
-          Status ao Vivo
-        </h1>
+    <div className="flex flex-1 flex-col gap-4 px-5 py-6">
+      <h1 className="font-heading text-xl font-bold text-navy">
+        Status ao Vivo
+      </h1>
 
-        {students.length === 0 && (
-          <p className="mt-6 text-center text-sm text-muted">
-            Nenhum aluno vinculado à sua conta ainda.
-          </p>
-        )}
+      {students.length === 0 && (
+        <p className="mt-6 text-center text-sm text-muted">
+          Nenhum aluno vinculado à sua conta ainda.
+        </p>
+      )}
 
-        {organizationIds.map((organizationId) => {
-          const organization = organizationsById.get(organizationId);
+      {organizationIds.map((organizationId) => {
+        const organization = organizationsById.get(organizationId);
+        return (
+          <div key={organizationId} className="flex flex-col gap-3">
+            <VanHeroBanner
+              vanPhotoUrl={organization?.van_photo_url}
+              organizationName={organization?.name}
+            />
+            <LiveMap
+              organizationId={organizationId}
+              getLocation={getVehicleLocationForResponsavel}
+            />
+          </div>
+        );
+      })}
+
+      <div className="flex flex-col gap-3">
+        {students.map((student) => {
+          const latest = latestByStudent.get(student.id);
+          const info = statusFor(latest?.event_type, latest?.time);
+
           return (
-            <div key={organizationId} className="flex flex-col gap-3">
-              <VanHeroBanner
-                vanPhotoUrl={organization?.van_photo_url}
-                organizationName={organization?.name}
-              />
-              <LiveMap
-                organizationId={organizationId}
-                getLocation={getVehicleLocationForResponsavel}
-              />
+            <div
+              key={student.id}
+              className="flex flex-col gap-3 rounded-card bg-surface p-5 shadow-card"
+            >
+              <div className="flex items-center gap-3">
+                <EditableStudentPhoto
+                  studentName={student.full_name}
+                  photoUrl={photoUrls.get(student.id) ?? null}
+                  updatePhotoAction={updateStudentPhotoAsGuardian.bind(
+                    null,
+                    student.id,
+                  )}
+                />
+                <span className="font-heading font-semibold text-navy">
+                  {student.full_name}
+                </span>
+              </div>
+              <div
+                className={`flex flex-col gap-1 rounded-input px-4 py-3 ${info.className}`}
+              >
+                <span className="font-medium">{info.label}</span>
+                {info.time && <span className="text-sm">Às {info.time}</span>}
+              </div>
             </div>
           );
         })}
-
-        <div className="flex flex-col gap-3">
-          {students.map((student) => {
-            const latest = latestByStudent.get(student.id);
-            const info = statusFor(latest?.event_type, latest?.time);
-
-            return (
-              <div
-                key={student.id}
-                className="flex flex-col gap-3 rounded-card bg-surface p-5 shadow-card"
-              >
-                <div className="flex items-center gap-3">
-                  <EditableStudentPhoto
-                    studentName={student.full_name}
-                    photoUrl={photoUrls.get(student.id) ?? null}
-                    updatePhotoAction={updateStudentPhotoAsGuardian.bind(
-                      null,
-                      student.id,
-                    )}
-                  />
-                  <span className="font-heading font-semibold text-navy">
-                    {student.full_name}
-                  </span>
-                </div>
-                <div
-                  className={`flex flex-col gap-1 rounded-input px-4 py-3 ${info.className}`}
-                >
-                  <span className="font-medium">{info.label}</span>
-                  {info.time && (
-                    <span className="text-sm">Às {info.time}</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
       </div>
-    </PageWatermark>
+    </div>
   );
 }

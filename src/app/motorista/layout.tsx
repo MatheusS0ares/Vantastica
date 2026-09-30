@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/SignOutButton";
 import { MotoristaNav } from "@/components/MotoristaNav";
 import { InstallPrompt } from "@/components/InstallPrompt";
+import { PageWatermark } from "@/components/PageWatermark";
 import { stopImpersonating } from "@/app/admin/actions";
 
 export const metadata: Metadata = {
@@ -41,51 +42,55 @@ export default async function MotoristaLayout({
   // a única situação em que ainda vale a pena uma consulta à parte.
   let orgName = context.organizationName;
   let orgLogoUrl = context.organizationLogoUrl;
+  let orgVanPhotoUrl = context.organizationVanPhotoUrl;
 
   if (context.isAdminImpersonation) {
     const supabase = await createClient();
     const { data: org } = await supabase
       .from("organizations")
-      .select("name, logo_url")
+      .select("name, logo_url, van_photo_url")
       .eq("id", context.organizationId)
       .maybeSingle();
     orgName = org?.name;
     orgLogoUrl = org?.logo_url;
+    orgVanPhotoUrl = org?.van_photo_url;
   }
 
   return (
-    <div className="flex flex-1 flex-col pb-24">
-      {context.isAdminImpersonation && (
-        <div className="flex items-center justify-between gap-3 bg-navy px-4 py-2 text-sm text-white">
-          <span>Modo admin — vendo como esta organização</span>
-          <form action={stopImpersonating}>
-            <button type="submit" className="underline">
-              Sair
-            </button>
-          </form>
+    <PageWatermark photoUrl={orgVanPhotoUrl}>
+      <div className="flex flex-1 flex-col pb-24">
+        {context.isAdminImpersonation && (
+          <div className="flex items-center justify-between gap-3 bg-navy px-4 py-2 text-sm text-white">
+            <span>Modo admin — vendo como esta organização</span>
+            <form action={stopImpersonating}>
+              <button type="submit" className="underline">
+                Sair
+              </button>
+            </form>
+          </div>
+        )}
+        <div className="flex items-center justify-between px-4 py-2">
+          <div className="flex items-center gap-2">
+            {orgLogoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={orgLogoUrl}
+                alt={orgName}
+                className="h-8 w-8 rounded-pill object-cover"
+              />
+            )}
+            {orgName && (
+              <span className="font-heading text-sm font-semibold text-navy">
+                {orgName}
+              </span>
+            )}
+          </div>
+          <SignOutButton />
         </div>
-      )}
-      <div className="flex items-center justify-between px-4 py-2">
-        <div className="flex items-center gap-2">
-          {orgLogoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={orgLogoUrl}
-              alt={orgName}
-              className="h-8 w-8 rounded-pill object-cover"
-            />
-          )}
-          {orgName && (
-            <span className="font-heading text-sm font-semibold text-navy">
-              {orgName}
-            </span>
-          )}
-        </div>
-        <SignOutButton />
+        <InstallPrompt />
+        {children}
+        <MotoristaNav />
       </div>
-      <InstallPrompt />
-      {children}
-      <MotoristaNav />
-    </div>
+    </PageWatermark>
   );
 }
