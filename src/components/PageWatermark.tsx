@@ -14,7 +14,7 @@ export function PageWatermark({
       {photoUrl && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.07]"
+          className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-20"
           style={{ backgroundImage: `url(${photoUrl})` }}
         />
       )}
