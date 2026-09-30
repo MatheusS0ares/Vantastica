@@ -70,6 +70,8 @@ export function buildCheckinEmailHtml({
   dateLabel,
   organizationName,
   logoUrl,
+  occurrenceText,
+  isLocationLive,
 }: {
   studentName: string;
   eventType: CheckinEvent;
@@ -77,11 +79,45 @@ export function buildCheckinEmailHtml({
   dateLabel: string;
   organizationName: string;
   logoUrl: string;
+  occurrenceText?: string | null;
+  isLocationLive?: boolean;
 }) {
   const copy = EVENT_COPY[eventType];
   const safeStudentName = escapeHtml(studentName);
   const safeOrganizationName = escapeHtml(organizationName);
   const safeLogoUrl = escapeHtml(logoUrl);
+
+  const occurrenceHtml = occurrenceText
+    ? `
+            <tr>
+              <td style="padding:16px 28px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#FFF5F5;border-radius:12px;">
+                  <tr>
+                    <td style="padding:14px 18px;">
+                      <p style="margin:0;color:#C53030;font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">
+                        ⚠ Ocorrência registrada
+                      </p>
+                      <p style="margin:6px 0 0;color:#2D3748;font-size:14px;line-height:1.5;">
+                        ${escapeHtml(occurrenceText)}
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>`
+    : "";
+
+  const locationHtml = isLocationLive
+    ? `
+            <tr>
+              <td style="padding:12px 28px 0;">
+                <p style="margin:0;color:#2F855A;font-size:13px;">
+                  📍 A van está compartilhando localização ao vivo agora —
+                  acompanhe pelo app.
+                </p>
+              </td>
+            </tr>`
+    : "";
 
   return `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -118,6 +154,8 @@ export function buildCheckinEmailHtml({
                 </p>
               </td>
             </tr>
+            ${occurrenceHtml}
+            ${locationHtml}
             <tr>
               <td style="padding:24px 28px 32px;">
                 <a
@@ -151,15 +189,23 @@ function buildCheckinEmailText({
   time,
   dateLabel,
   organizationName,
+  occurrenceText,
+  isLocationLive,
 }: {
   studentName: string;
   eventType: CheckinEvent;
   time: string;
   dateLabel: string;
   organizationName: string;
+  occurrenceText?: string | null;
+  isLocationLive?: boolean;
 }) {
   const copy = EVENT_COPY[eventType];
-  return `${copy.title}: ${studentName} ${copy.body}\n${dateLabel} às ${time}\n\n${organizationName} · VanTástica`;
+  const parts = [`${copy.title}: ${studentName} ${copy.body}`, `${dateLabel} às ${time}`];
+  if (occurrenceText) parts.push(`Ocorrência registrada: ${occurrenceText}`);
+  if (isLocationLive) parts.push("A van está compartilhando localização ao vivo — acompanhe pelo app.");
+  parts.push(`${organizationName} · VanTástica`);
+  return parts.join("\n\n");
 }
 
 function buildGuardianWelcomeEmailHtml({
@@ -387,6 +433,8 @@ export async function notifyGuardiansOfCheckin({
   guardianEmails,
   organizationName,
   organizationLogoUrl,
+  occurrenceText,
+  isLocationLive,
 }: {
   studentName: string;
   eventType: CheckinEvent;
@@ -394,6 +442,8 @@ export async function notifyGuardiansOfCheckin({
   guardianEmails: string[];
   organizationName: string;
   organizationLogoUrl?: string | null;
+  occurrenceText?: string | null;
+  isLocationLive?: boolean;
 }) {
   if (!process.env.RESEND_API_KEY || guardianEmails.length === 0) return;
 
@@ -416,6 +466,8 @@ export async function notifyGuardiansOfCheckin({
         dateLabel,
         organizationName,
         logoUrl,
+        occurrenceText,
+        isLocationLive,
       }),
       text: buildCheckinEmailText({
         studentName,
@@ -423,6 +475,8 @@ export async function notifyGuardiansOfCheckin({
         time,
         dateLabel,
         organizationName,
+        occurrenceText,
+        isLocationLive,
       }),
     });
   } catch (err) {

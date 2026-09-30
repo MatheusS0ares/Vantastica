@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
 import { uploadStudentPhoto, deleteStudentPhoto } from "@/lib/supabase/storage";
@@ -151,18 +152,25 @@ export async function activateGuardianAccount(
   }
 
   if (account.isNew) {
-    const { data: student } = await supabase
-      .from("students")
-      .select("full_name")
-      .eq("id", studentId)
-      .maybeSingle();
+    const organizationName = context.organizationName ?? "VanTástica";
+    const organizationLogoUrl = context.organizationLogoUrl;
 
-    await notifyGuardianOfNewAccount({
-      studentName: student?.full_name ?? "seu filho(a)",
-      organizationName: context.organizationName ?? "VanTástica",
-      organizationLogoUrl: context.organizationLogoUrl,
-      loginEmail: email,
-      password,
+    // Não trava o clique do motorista esperando o Resend responder — o
+    // acesso já foi criado acima, o e-mail é só um aviso extra.
+    after(async () => {
+      const { data: student } = await supabase
+        .from("students")
+        .select("full_name")
+        .eq("id", studentId)
+        .maybeSingle();
+
+      await notifyGuardianOfNewAccount({
+        studentName: student?.full_name ?? "seu filho(a)",
+        organizationName,
+        organizationLogoUrl,
+        loginEmail: email,
+        password,
+      });
     });
   }
 
@@ -458,18 +466,25 @@ export async function addGuardianToStudent(
   }
 
   if (account.isNew) {
-    const { data: student } = await supabase
-      .from("students")
-      .select("full_name")
-      .eq("id", studentId)
-      .maybeSingle();
+    const organizationName = context.organizationName ?? "VanTástica";
+    const organizationLogoUrl = context.organizationLogoUrl;
 
-    await notifyGuardianOfNewAccount({
-      studentName: student?.full_name ?? fullName,
-      organizationName: context.organizationName ?? "VanTástica",
-      organizationLogoUrl: context.organizationLogoUrl,
-      loginEmail: email,
-      password,
+    // Não trava o clique do motorista esperando o Resend responder — o
+    // acesso já foi criado acima, o e-mail é só um aviso extra.
+    after(async () => {
+      const { data: student } = await supabase
+        .from("students")
+        .select("full_name")
+        .eq("id", studentId)
+        .maybeSingle();
+
+      await notifyGuardianOfNewAccount({
+        studentName: student?.full_name ?? fullName,
+        organizationName,
+        organizationLogoUrl,
+        loginEmail: email,
+        password,
+      });
     });
   }
 

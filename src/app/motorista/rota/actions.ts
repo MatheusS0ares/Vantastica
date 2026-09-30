@@ -2,12 +2,16 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getUserContext } from "@/lib/supabase/user-context";
+import { getVehicleLocation } from "@/lib/supabase/location";
 import { notifyGuardiansOfCheckin } from "@/lib/notifications";
 import type { Shift } from "@/lib/shifts";
 
 type CheckinEvent = "embarque" | "entrega" | "ausente";
+
+const LOCATION_LIVE_WINDOW_MS = 5 * 60 * 1000;
 
 export async function recordCheckin(
   studentId: string,
@@ -19,16 +23,6 @@ export async function recordCheckin(
   if (context.role !== "motorista") redirect("/login");
 
   const supabase = await createClient();
-
-  const [{ data: student }, { data: organization }] = await Promise.all([
-    supabase.from("students").select("full_name").eq("id", studentId).single(),
-    supabase
-      .from("organizations")
-      .select("name, logo_url")
-      .eq("id", context.organizationId)
-      .maybeSingle(),
-  ]);
-
   const occurredAt = new Date();
 
   const { error } = await supabase.from("checkins").insert({
@@ -58,7 +52,31 @@ export async function recordCheckin(
     });
   }
 
-  if (student) {
+  const organizationId = context.organizationId;
+
+  // Tudo que monta o e-mail (mais uma chamada de rede externa pro
+  // Resend) roda DEPOIS da resposta já ter voltado pro motorista — o
+  // check-in em si já foi salvo acima; esperar o e-mail sair só deixava
+  // o botão mais lento sem nenhum ganho real (falha de envio já era
+  // silenciosa mesmo).
+  after(async () => {
+    const [{ data: student }, { data: organization }, location] =
+      await Promise.all([
+        supabase
+          .from("students")
+          .select("full_name")
+          .eq("id", studentId)
+          .maybeSingle(),
+        supabase
+          .from("organizations")
+          .select("name, logo_url")
+          .eq("id", organizationId)
+          .maybeSingle(),
+        getVehicleLocation(supabase, organizationId),
+      ]);
+
+    if (!student) return;
+
     const { data: guardianLinks } = await supabase
       .from("student_guardians")
       .select("guardians(email)")
@@ -72,6 +90,12 @@ export async function recordCheckin(
       )
       .filter((email): email is string => Boolean(email));
 
+    const isLocationLive = Boolean(
+      location &&
+        Date.now() - new Date(location.updatedAt).getTime() <
+          LOCATION_LIVE_WINDOW_MS,
+    );
+
     await notifyGuardiansOfCheckin({
       studentName: student.full_name,
       eventType,
@@ -79,8 +103,10 @@ export async function recordCheckin(
       guardianEmails,
       organizationName: organization?.name ?? "VanTástica",
       organizationLogoUrl: organization?.logo_url,
+      occurrenceText: occurrence || null,
+      isLocationLive,
     });
-  }
+  });
 
   revalidatePath("/motorista/rota");
   if (occurrence) {
