@@ -1,9 +1,14 @@
 const WORDMARK = "VanTástica";
+const ACCENT_LETTER_INDEX = 4; // o "á"
 
 /**
  * Tela cheia com a logo animada da VanTástica, mostrada enquanto o login
  * está em andamento (a action de auth normalmente demora alguns segundos).
  * Fica montada só enquanto o form está pending — ver LoginSubmitButton.
+ *
+ * Geometria inspirada na logo oficial: estrada em V terminando numa seta
+ * que aponta pro pino de destino, sem o rosto que tinha no rascunho
+ * inicial (a logo de verdade não tem).
  */
 export function LoadingSplash() {
   return (
@@ -22,13 +27,9 @@ export function LoadingSplash() {
         className="vls-logo h-40 w-auto sm:h-48"
       >
         <defs>
-          <linearGradient id="vlsRoadBase" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#13284f" />
-            <stop offset="100%" stopColor="#0B1B3A" />
-          </linearGradient>
-          <linearGradient id="vlsArrowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#38BDF8" />
-            <stop offset="100%" stopColor="#2E5BFF" />
+          <linearGradient id="vlsRoadGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#1a365d" />
+            <stop offset="100%" stopColor="#2b6cb0" />
           </linearGradient>
           <linearGradient id="vlsPinGrad" x1="0%" y1="0%" x2="0%" y2="100%">
             <stop offset="0%" stopColor="#4ADE80" />
@@ -38,27 +39,19 @@ export function LoadingSplash() {
 
         <path
           className="vls-road-base"
-          d="M 75 55 C 105 130, 140 215, 175 228 C 192 234, 212 215, 238 150 L 276 56"
+          d="M 88 62 C 118 142, 152 212, 190 226 C 218 212, 238 178, 256 128"
           fill="none"
-          stroke="url(#vlsRoadBase)"
-          strokeWidth={38}
-          strokeLinecap="round"
-        />
-        <path
-          className="vls-road-edge"
-          d="M 59 50 C 90 128, 126 222, 168 244 C 188 252, 218 238, 252 148 L 292 50"
-          fill="none"
-          stroke="#2E5BFF"
-          strokeWidth={4}
+          stroke="url(#vlsRoadGrad)"
+          strokeWidth={34}
           strokeLinecap="round"
         />
         <path
           className="vls-road-dash"
-          d="M 75 55 C 105 130, 140 215, 175 228 C 192 234, 212 215, 238 150 L 275 58"
+          d="M 88 62 C 118 142, 152 212, 190 226 C 218 212, 238 178, 256 128"
           fill="none"
-          stroke="#FACC15"
+          stroke="#22C55E"
           strokeWidth={4}
-          strokeDasharray="12 12"
+          strokeDasharray="11 11"
           strokeLinecap="round"
         />
 
@@ -66,51 +59,61 @@ export function LoadingSplash() {
             animação CSS entra no grupo de dentro — misturar os dois no
             mesmo <g> faz o transform da animação substituir por completo
             o translate/rotate do atributo. */}
-        <g transform="translate(266, 28) rotate(145)">
+        <g transform="translate(272, 96) rotate(24)">
           <g className="vls-arrow">
             <path
-              d="M 0 -20 L 15 3 L 6 3 L 6 20 L -6 20 L -6 3 L -15 3 Z"
-              fill="url(#vlsArrowGrad)"
+              d="M 0 -22 L 16 4 L 6 4 L 6 22 L -6 22 L -6 4 L -16 4 Z"
+              fill="#2b6cb0"
             />
           </g>
         </g>
 
-        <g className="vls-pin">
-          <g className="vls-pin-wiggle">
-            <path
-              d="M 175 150 C 150 150 132 170 132 195 C 132 228 175 260 175 260 C 175 260 218 228 218 195 C 218 170 200 150 175 150 Z"
-              fill="url(#vlsPinGrad)"
-            />
-            <circle cx="175" cy="196" r="20" fill="#0B1B3A" />
-            <circle cx="168" cy="192" r="4" fill="#ffffff" />
-            <circle cx="182" cy="192" r="4" fill="#ffffff" />
-            <path
-              d="M 165 202 Q 175 210 185 202"
-              stroke="#ffffff"
-              strokeWidth={2.5}
-              fill="none"
-              strokeLinecap="round"
-            />
+        <g transform="translate(300, 54)">
+          <g className="vls-pin">
+            <g className="vls-pin-wiggle">
+              <path
+                d="M 0 -46 C -22 -46 -38 -28 -38 -6 C -38 24 0 54 0 54 C 0 54 38 24 38 -6 C 38 -28 22 -46 0 -46 Z"
+                fill="url(#vlsPinGrad)"
+              />
+              <circle cx="0" cy="-4" r="16" fill="#1a365d" />
+            </g>
           </g>
         </g>
 
-        <g transform="translate(175, 195)">
-          <circle className="vls-confetti-piece" style={{ "--tx": "-40px", "--ty": "-54px", animationDelay: "1.5s" } as React.CSSProperties} r={4} fill="#FACC15" />
-          <rect className="vls-confetti-piece" style={{ "--tx": "36px", "--ty": "-62px", "--tr": "140deg", animationDelay: "1.56s" } as React.CSSProperties} x={-3} y={-3} width={6} height={6} fill="#38BDF8" />
-          <circle className="vls-confetti-piece" style={{ "--tx": "-12px", "--ty": "-72px", animationDelay: "1.64s" } as React.CSSProperties} r={3.5} fill="#4ADE80" />
-          <rect className="vls-confetti-piece" style={{ "--tx": "48px", "--ty": "-18px", "--tr": "-100deg", animationDelay: "1.46s" } as React.CSSProperties} x={-3} y={-3} width={6} height={6} fill="#FACC15" />
+        <g transform="translate(300, 54)">
+          <circle className="vls-confetti-piece" style={{ "--tx": "-38px", "--ty": "-30px", animationDelay: "1.5s" } as React.CSSProperties} r={4} fill="#FACC15" />
+          <rect className="vls-confetti-piece" style={{ "--tx": "34px", "--ty": "-36px", "--tr": "140deg", animationDelay: "1.56s" } as React.CSSProperties} x={-3} y={-3} width={6} height={6} fill="#38BDF8" />
+          <circle className="vls-confetti-piece" style={{ "--tx": "-8px", "--ty": "-52px", animationDelay: "1.64s" } as React.CSSProperties} r={3.5} fill="#4ADE80" />
+          <rect className="vls-confetti-piece" style={{ "--tx": "44px", "--ty": "4px", "--tr": "-100deg", animationDelay: "1.46s" } as React.CSSProperties} x={-3} y={-3} width={6} height={6} fill="#FACC15" />
         </g>
       </svg>
 
-      <div className="vls-wordmark-wrap relative">
+      <div className="vls-wordmark-wrap relative pt-3">
         <p aria-hidden className="vls-wordmark flex text-3xl font-black text-white sm:text-4xl">
           {WORDMARK.split("").map((letter, i) => (
             <span
               key={i}
-              className="vls-letter inline-block"
+              className="vls-letter relative inline-block"
               style={{ animationDelay: `${0.35 + i * 0.05}s` }}
             >
               {letter}
+              {i === ACCENT_LETTER_INDEX && (
+                <svg
+                  aria-hidden
+                  viewBox="0 0 24 24"
+                  className="vls-accent-mark absolute -top-3 left-1/2 h-3 w-3"
+                  style={{ animationDelay: `${0.35 + i * 0.05 + 0.2}s` }}
+                >
+                  <path
+                    d="M 3 13 L 10 20 L 21 4"
+                    fill="none"
+                    stroke="#4ADE80"
+                    strokeWidth={4}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
             </span>
           ))}
         </p>
