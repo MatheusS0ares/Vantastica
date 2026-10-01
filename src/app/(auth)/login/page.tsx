@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ToastFromParams } from "@/components/ToastFromParams";
+import { LoginSubmitButton } from "@/components/LoginSubmitButton";
 import { signIn } from "../actions";
 
 export default async function LoginPage({
@@ -51,12 +52,7 @@ export default async function LoginPage({
               className="rounded-input border border-border px-3 py-2 text-base outline-none focus:border-blue"
             />
           </label>
-          <button
-            type="submit"
-            className="mt-2 rounded-pill bg-navy px-6 py-3 font-medium text-white transition hover:opacity-90"
-          >
-            Entrar
-          </button>
+          <LoginSubmitButton />
         </form>
 
         <div className="mt-6 flex flex-col gap-1 text-center text-sm text-muted">

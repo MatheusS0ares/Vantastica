@@ -168,3 +168,172 @@ input[type="radio"]:active {
 @media (prefers-reduced-motion: reduce) {
   .popover-content { animation: none !important; }
 }
+
+/* Tela de carregamento animada (logo da VanTástica) — mostrada enquanto
+   o login está pending (ver LoginSubmitButton/LoadingSplash). Sem
+   plugin de animação, CSS puro; cada peça toca uma vez (both) e as
+   três que dão vida à espera (seta pulsando via glow, pino balançando,
+   dots pulando) ficam em loop enquanto a tela estiver montada. */
+@keyframes vls-glow-breathe {
+  from { transform: translate(-50%, -50%) scale(0.9); opacity: 0.55; }
+  to { transform: translate(-50%, -50%) scale(1.15); opacity: 0.85; }
+}
+.vls-glow {
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  width: 320px;
+  height: 320px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(46, 91, 255, 0.35), transparent 70%);
+  animation: vls-glow-breathe 3.2s ease-in-out infinite alternate;
+}
+
+@keyframes vls-road-draw {
+  from { stroke-dasharray: 600; stroke-dashoffset: 600; }
+  to { stroke-dasharray: 600; stroke-dashoffset: 0; }
+}
+.vls-road-base,
+.vls-road-edge,
+.vls-road-dash {
+  animation: vls-road-draw 1s cubic-bezier(0.34, 1.1, 0.64, 1) both;
+}
+.vls-road-edge { animation-delay: 0.05s; }
+.vls-road-dash { animation-delay: 0.1s; }
+
+@keyframes vls-arrow-bounce {
+  0% { opacity: 0; transform: scale(0.2, 0.2) translate(-20px, 25px); }
+  50% { opacity: 1; transform: scale(1.3, 0.75) translate(0, -6px); }
+  70% { transform: scale(0.88, 1.18) translate(0, 3px); }
+  85% { transform: scale(1.08, 0.94) translate(0, -2px); }
+  100% { opacity: 1; transform: scale(1, 1) translate(0, 0); }
+}
+.vls-arrow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vls-arrow-bounce 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.7s both;
+}
+
+@keyframes vls-pin-drop {
+  0% { opacity: 0; transform: translateY(-110px) scale(0.8, 1.3); }
+  50% { opacity: 1; transform: translateY(0) scale(1.35, 0.65); }
+  68% { transform: translateY(-18px) scale(0.9, 1.15); }
+  84% { transform: translateY(0) scale(1.1, 0.92); }
+  100% { opacity: 1; transform: translateY(0) scale(1, 1); }
+}
+.vls-pin {
+  transform-origin: 175px 260px;
+  animation: vls-pin-drop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 1s both;
+}
+
+@keyframes vls-pin-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+  75% { transform: rotate(-2deg); }
+}
+.vls-pin-wiggle {
+  transform-origin: 175px 260px;
+  animation: vls-pin-wiggle 2.4s ease-in-out 1.9s infinite;
+}
+
+@keyframes vls-letter-pop {
+  0% { opacity: 0; transform: translateY(24px) scale(0.7, 1.3); }
+  55% { opacity: 1; transform: translateY(-8px) scale(1.15, 0.9); }
+  75% { transform: translateY(2px) scale(0.95, 1.05); }
+  100% { opacity: 1; transform: translateY(0) scale(1, 1); }
+}
+.vls-letter {
+  opacity: 0;
+  animation: vls-letter-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes vls-confetti-pop {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg) scale(0.4); }
+  20% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  75% {
+    opacity: 1;
+    transform: translate(var(--tx), var(--ty)) rotate(var(--tr, 0deg)) scale(0.85);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--tx), var(--ty)) rotate(var(--tr, 0deg)) scale(0.6);
+  }
+}
+.vls-confetti-piece {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: vls-confetti-pop 1.05s ease-out both;
+}
+
+@keyframes vls-shimmer-sweep {
+  0%, 10% { background-position: 150% 0; opacity: 0; }
+  25% { opacity: 1; }
+  60% { background-position: -50% 0; opacity: 1; }
+  75%, 100% { background-position: -50% 0; opacity: 0; }
+}
+.vls-wordmark-wrap {
+  overflow: hidden;
+  border-radius: 8px;
+}
+.vls-shimmer {
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  background-position: 150% 0;
+  mix-blend-mode: overlay;
+  animation: vls-shimmer-sweep 2.8s ease-in-out 2s infinite;
+}
+
+@keyframes vls-fade-up-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.vls-tagline {
+  opacity: 0;
+  animation: vls-fade-up-in 0.5s ease-out 1.1s both;
+}
+
+@keyframes vls-jelly-hop {
+  0%, 100% { transform: translateY(0) scale(1, 0.85); }
+  50% { transform: translateY(-6px) scale(0.9, 1.15); }
+}
+.vls-dots {
+  opacity: 0;
+  animation: vls-fade-up-in 0.4s ease-out 1.3s both;
+}
+.vls-dot {
+  animation: vls-jelly-hop 0.9s ease-in-out infinite;
+}
+.vls-dot:nth-child(2) { animation-delay: 0.15s; }
+.vls-dot:nth-child(3) { animation-delay: 0.3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .vls-glow,
+  .vls-road-base,
+  .vls-road-edge,
+  .vls-road-dash,
+  .vls-arrow,
+  .vls-pin,
+  .vls-pin-wiggle,
+  .vls-letter,
+  .vls-tagline,
+  .vls-dots,
+  .vls-dot,
+  .vls-shimmer {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  .vls-confetti-piece {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+  .vls-shimmer {
+    opacity: 0 !important;
+  }
+}
